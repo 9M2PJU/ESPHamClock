@@ -157,10 +157,11 @@ This project is the definitive open-source installer, multi-platform packaging s
 ## 4. Session Log
 
 ### 2026-08-30 Session
-- **Goal**: Update documentation, landing pages, and guides across the project to add the official standalone Android App (.apk) download links (`https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases`).
+- **Goal**: Update documentation, landing pages, and guides across the project to add the official standalone Android App (.apk) download links (`https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases`) and add the DuitNow/TNG donation QR code to the sponsor section.
 - **Files updated**:
-  - `docs/index.html`: Added Android App navigation link, hero badge, install tab (`apk`), updated feature grid, enhanced Android showcase section with download buttons, highlights, and footer link.
-  - `README.md`: Updated Android badge, table of contents, Quick Install section (APK + Termux), pre-built packages table, and expanded Android support section.
+  - `docs/images/9m2pju-donation-qr.png`: Added Malaysian National DuitNow / Touch 'n Go QR donation image.
+  - `docs/index.html`: Added Android App navigation link, hero badge, install tab (`apk`), updated feature grid, enhanced Android showcase section with download buttons, highlights, footer link, and DuitNow / TNG QR donation card in the sponsor section.
+  - `README.md`: Updated Android badge, table of contents, Quick Install section (APK + Termux), pre-built packages table, expanded Android support section, and embedded donation QR code in the sponsor section.
   - `docs/ANDROID.md`: Restructured into Method 1 (Official Standalone APK - Recommended) and Method 2 (Termux & Fully Kiosk Browser CLI).
   - `docs/INSTALLATION.md`: Updated TOC and Section 4 to detail both Native APK and Termux methods.
   - `termux/README.md`: Added top callout pointing to official standalone Android APK releases.

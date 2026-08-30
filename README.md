@@ -738,6 +738,12 @@ If you find this installer, packaging suite, and the Open HamClock Backend usefu
 
 <div align="center">
 
+<p align="center">
+  <img src="docs/images/9m2pju-donation-qr.png" alt="DuitNow / Touch 'n Go QR Donation - 9M2PJU" width="220" />
+  <br/>
+  <sub><b>🇲🇾 DuitNow / Touch 'n Go (TNG) QR</b> (Scan with any Malaysian Banking / eWallet App)</sub>
+</p>
+
 <a href="https://buymeacoffee.com/9m2pju" target="_blank"><img src="https://img.shields.io/badge/Buy_Me_a_Coffee-9M2PJU-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee" /></a>
 &nbsp;&nbsp;
 <a href="https://wise.com/pay/me/faizulz13" target="_blank"><img src="https://img.shields.io/badge/Wise-faizulz13-163300?style=for-the-badge&logo=wise&logoColor=white" alt="Wise" /></a>
