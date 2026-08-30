@@ -336,9 +336,14 @@ Turn spare Android tablets, phones, or TV boxes into permanent, low-power (<3W) 
 The official standalone Android APK runs a 100% native embedded C++ engine directly on Android. No Termux, root, or Linux chroot needed!
 
 - **🚀 100% Native Embedded C++ Engine**: Runs the full HamClock backend natively.
+- **📍 GPS & Maidenhead Locator Sync**: Auto GPS coordinates acquisition & real-time station DE grid locator sync.
+- **📦 Config Backup & Restore (SAF)**: One-tap export/import of station EEPROM, presets, and preferences via ZIP & Share Sheet.
+- **🌙 OLED Burn-in Care & Night Dimmer**: Pixel-shift anti-burn-in protection and auto nighttime dimming schedule (10PM–6AM).
+- **📺 Android TV & Car Ready**: Full D-Pad remote navigation support and automatic USB charger power wake/sleep.
 - **📱 Edge-to-Edge Fullscreen Display**: Hardware-accelerated UI with responsive multi-touch.
 - **🔋 24/7 Background Foreground Service**: Built-in WakeLock/WifiLock support to prevent sleep.
 - **🌐 Multi-Device LAN Streaming**: View and control HamClock over WiFi at `http://<PHONE-IP>:8081/live.html`.
+- **🇲🇾 Bahasa Melayu Localization**: Native Malaysian Malay language translations.
 - **🔄 Auto-Start on Boot**: Toggle in settings for dedicated tablet monitors.
 
 📥 **Download Packages from [GitHub Releases](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases):**

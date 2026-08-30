@@ -41,10 +41,16 @@ Download the latest APK directly from [**GitHub Releases**](https://github.com/9
 
 ### ✨ App Highlights & Features
 
-- **🚀 100% Native Embedded C++ Engine**: Runs the full HamClock backend and telemetry pipeline natively on Android.
-- **📱 Edge-to-Edge Immersive Fullscreen**: Hardware-accelerated UI that automatically scales to your display with responsive multi-touch controls.
+- **🚀 100% Native Embedded C++ Engine**: Runs the full HamClock backend and telemetry pipeline natively on Android. No Termux, root, or Linux chroot needed!
+- **📍 GPS & Maidenhead Locator Auto-Sync**: Automatically acquires device GPS coordinates, calculates 6-character Maidenhead locator, and syncs DE station coordinates via REST API.
+- **📦 Station Config Backup & Restore (SAF)**: Full export & import of native EEPROM, custom configuration presets, and Android preferences to `.zip` archives with Share Sheet integration.
+- **🌙 OLED Burn-in Protection & Night Dimmer**: Periodic subtle pixel-shift displacement and automatic nighttime dimming (10:00 PM – 6:00 AM) to extend AMOLED/OLED display life.
+- **📺 Android TV & Car Head Unit Ready**: Full D-Pad remote navigation support, Leanback launcher, and automatic USB power connection management (Car / Desk mode).
+- **📱 Edge-to-Edge Immersive Fullscreen**: Hardware-accelerated UI that automatically scales with zero distraction borders.
+- **🎨 Ghost-Free Floating Overlay Controls**: Sleek, fully-collapsing control bar that leaves zero shadow or outline on screen.
 - **🔋 24/7 Shack Station Background Daemon**: Optional foreground service with WakeLock and WifiLock support to keep HamClock running continuously.
 - **🌐 Multi-Device Shack / LAN Sharing**: Access the live interactive web mirror from your PC, Mac, or iPad over WiFi at `http://<PHONE-IP>:8081/live.html`.
+- **🇲🇾 Bahasa Melayu Localization**: Native Malaysian Malay language support for settings, backup, and station diagnostics.
 - **📜 In-App Diagnostic Logs**: Built-in real-time log viewer for network and telemetry diagnostics.
 - **🔄 Auto-Start on Boot**: Dedicated toggle to automatically launch HamClock whenever the Android device powers on.
 

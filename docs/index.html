@@ -715,14 +715,14 @@
   <!-- Android & Termux Showcase Section -->
   <section class="container" id="android-showcase">
     <div class="tribute-card" style="border-color: rgba(16, 185, 129, 0.4); background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(17, 24, 39, 0.95) 100%);">
-      <span class="tribute-badge" style="background: var(--accent-emerald-dim); color: var(--accent-emerald); border-color: rgba(16, 185, 129, 0.4);">📱 Android Shack Display • Official Release v1.0.0</span>
+      <span class="tribute-badge" style="background: var(--accent-emerald-dim); color: var(--accent-emerald); border-color: rgba(16, 185, 129, 0.4);">📱 Android Shack Display • Official Release v1.0.3</span>
       <h2>HamClock for Android (Native App &amp; Termux)</h2>
       <p>Transform any spare Android phone, tablet, or TV box into a dedicated, low-power (&lt;3W) shack touch clock. Install the standalone official <strong>Android App (.apk)</strong> with embedded C++ engine and edge-to-edge UI, or run via <strong>Termux</strong> with <strong>Fully Kiosk Browser</strong>.</p>
       
       <!-- Download Buttons -->
       <div style="display: flex; justify-content: center; gap: 16px; margin: 24px 0; flex-wrap: wrap;">
-        <a href="https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: var(--accent-emerald); color: #000; padding: 12px 24px; border-radius: 8px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3); font-size: 1rem; transition: var(--transition);">
-          📥 Download Android APK (v1.0.0)
+        <a href="https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases/latest" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: var(--accent-emerald); color: #000; padding: 12px 24px; border-radius: 8px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3); font-size: 1rem; transition: var(--transition);">
+          📥 Download Android APK (v1.0.3)
         </a>
         <a href="https://github.com/9M2PJU/9M2PJU-HamClock-Installer/blob/main/docs/ANDROID.md" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-highlight); padding: 12px 24px; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 1rem; transition: var(--transition);">
           📖 Android Installation Guide
@@ -736,16 +736,24 @@
           <div style="font-size: 0.88rem; color: var(--text-muted);">Runs the full C++ backend natively. No Termux, root, or Linux chroot needed.</div>
         </div>
         <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px;">
-          <div style="font-weight: 700; color: var(--accent-cyan); margin-bottom: 6px;">📱 Immersive Fullscreen UI</div>
-          <div style="font-size: 0.88rem; color: var(--text-muted);">Hardware-accelerated edge-to-edge layout with responsive multi-touch controls.</div>
+          <div style="font-weight: 700; color: var(--accent-cyan); margin-bottom: 6px;">📍 GPS Maidenhead Auto-Sync</div>
+          <div style="font-size: 0.88rem; color: var(--text-muted);">Automatically acquires device GPS and synchronizes DE grid locator in real-time.</div>
         </div>
         <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px;">
-          <div style="font-weight: 700; color: var(--accent-amber); margin-bottom: 6px;">🔋 24/7 Background Daemon</div>
-          <div style="font-size: 0.88rem; color: var(--text-muted);">Foreground service with WakeLock and WifiLock to keep your shack clock active.</div>
+          <div style="font-weight: 700; color: var(--accent-amber); margin-bottom: 6px;">📦 Config Backup &amp; Restore (SAF)</div>
+          <div style="font-size: 0.88rem; color: var(--text-muted);">One-tap export/import of station EEPROM, presets, and preferences via ZIP &amp; Share Sheet.</div>
         </div>
         <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px;">
-          <div style="font-weight: 700; color: var(--accent-blue); margin-bottom: 6px;">🌐 Multi-Device LAN Streaming</div>
-          <div style="font-size: 0.88rem; color: var(--text-muted);">Mirror &amp; control HamClock from PC, Mac, or iPad at <code>http://&lt;PHONE-IP&gt;:8081/live.html</code>.</div>
+          <div style="font-weight: 700; color: #a855f7; margin-bottom: 6px;">🌙 OLED Care &amp; Night Dimmer</div>
+          <div style="font-size: 0.88rem; color: var(--text-muted);">Pixel-shift anti-burn-in protection and auto nighttime dimming schedule (10PM–6AM).</div>
+        </div>
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px;">
+          <div style="font-weight: 700; color: #ec4899; margin-bottom: 6px;">📺 Android TV &amp; Car Head Unit</div>
+          <div style="font-size: 0.88rem; color: var(--text-muted);">Full D-Pad remote navigation support and automatic USB charger power wake/sleep.</div>
+        </div>
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px;">
+          <div style="font-weight: 700; color: var(--accent-blue); margin-bottom: 6px;">🌐 24/7 Daemon &amp; LAN Streaming</div>
+          <div style="font-size: 0.88rem; color: var(--text-muted);">Continuous background foreground service with live web mirror at <code>http://&lt;IP&gt;:8081/live.html</code>.</div>
         </div>
       </div>
 
