@@ -8,7 +8,7 @@ Comprehensive installation instructions for **HamClock (Open HamClock / OHB Edit
 1. [One-Liner Quick Install (Linux/macOS/FreeBSD)](#1-one-liner-quick-install)
 2. [Pre-Built Linux Packages (AUR, .deb, .rpm, .AppImage)](#2-pre-built-linux-packages-aur-deb-rpm-appimage)
 3. [Windows Installation (WSL2 & Docker)](#3-windows-installation-wsl2--docker)
-4. [Android Installation (Termux)](#4-android-installation-termux)
+4. [Android Installation (Native APK & Termux)](#4-android-installation-native-apk--termux)
 5. [Docker & Containerized Setup](#5-docker--containerized-setup)
 6. [Raspberry Pi & Inovato Quadra Setup](#6-raspberry-pi--inovato-quadra-setup)
 7. [Package Managers & Pre-Built Distributions](#7-package-managers--pre-built-distributions)
@@ -138,17 +138,32 @@ irm https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/scri
 
 ---
 
-## 4. Android Installation (Termux)
+## 4. Android Installation (Native APK & Termux)
 
-See the full [Android & Termux Guide](ANDROID.md) for detailed battery, kiosk, and autostart optimizations.
+See the full [Android Installation Guide](ANDROID.md) for complete APK and Termux instructions, battery saver settings, and autostart configurations.
 
-### 1-Line Automated Termux Installer:
+### Option A: Official Standalone Android App (.apk) [Recommended] ⭐
+
+The standalone native Android APK contains the full embedded C++ engine. No Termux, root, or Linux chroot required!
+
+- [📥 **Download Universal APK (`9M2PJU-HamClock.apk`)**](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases/latest)
+- **All Architectures & Releases:** [GitHub Releases](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases) (`arm64-v8a`, `armeabi-v7a`, `x86_64`, `x86`)
+
+#### Quick Start (APK):
+1. Download `9M2PJU-HamClock.apk` to your Android device and tap to install.
+2. Open **HamClock** and configure your Callsign and Grid Square in the Setup screen.
+3. *(Optional)* Enable **Foreground Service** and **Start on Boot** in app settings.
+
+---
+
+### Option B: 1-Line Automated Termux Installer (CLI)
+
 Open the **Termux** app and run:
 ```bash
 pkg update -y && pkg install -y curl && bash -c "$(curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/termux/install.sh)"
 ```
 
-### Quick Start:
+#### Quick Start (Termux):
 1. Prevent Android from sleeping (disable Battery Saver) and start HamClock:
    ```bash
    termux-wake-lock
@@ -159,6 +174,8 @@ pkg update -y && pkg install -y curl && bash -c "$(curl -fsSL https://raw.github
    ```text
    http://localhost:8081/live.html
    ```
+
+---
 
 ## 5. Docker & Containerized Setup
 

@@ -145,6 +145,7 @@ This project is the definitive open-source installer, multi-platform packaging s
 - **Live Website**: [https://hamclock.hamradio.my/](https://hamclock.hamradio.my/)
 - **Backend**: [https://ohb.hamclock.app](https://ohb.hamclock.app)
 - **GitHub Repo**: [https://github.com/9M2PJU/9M2PJU-HamClock-Installer](https://github.com/9M2PJU/9M2PJU-HamClock-Installer)
+- **Android APK Releases**: [https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases)
 - **AUR Package**: [https://aur.archlinux.org/packages/hamclock-git](https://aur.archlinux.org/packages/hamclock-git)
 - **Snapcraft**: [https://snapcraft.io/hamclock](https://snapcraft.io/hamclock)
 - **Buy Me a Coffee**: [https://buymeacoffee.com/9m2pju](https://buymeacoffee.com/9m2pju)
@@ -154,6 +155,16 @@ This project is the definitive open-source installer, multi-platform packaging s
 ---
 
 ## 4. Session Log
+
+### 2026-08-30 Session
+- **Goal**: Update documentation, landing pages, and guides across the project to add the official standalone Android App (.apk) download links (`https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases`).
+- **Files updated**:
+  - `docs/index.html`: Added Android App navigation link, hero badge, install tab (`apk`), updated feature grid, enhanced Android showcase section with download buttons, highlights, and footer link.
+  - `README.md`: Updated Android badge, table of contents, Quick Install section (APK + Termux), pre-built packages table, and expanded Android support section.
+  - `docs/ANDROID.md`: Restructured into Method 1 (Official Standalone APK - Recommended) and Method 2 (Termux & Fully Kiosk Browser CLI).
+  - `docs/INSTALLATION.md`: Updated TOC and Section 4 to detail both Native APK and Termux methods.
+  - `termux/README.md`: Added top callout pointing to official standalone Android APK releases.
+  - `PROGRESS.md`: Updated references and session log.
 
 ### 2026-08-22 Session
 - **Commit**: `2324b5c` - "feat(install): add auto-start prompt, ASCII banners, and run/issue instructions"

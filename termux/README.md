@@ -1,5 +1,9 @@
 # HamClock for Android (Termux)
 
+> 💡 **Looking for the Official Android App?**  
+> An official standalone **Android App (.apk)** is available with 100% native embedded C++ engine (no Termux or command line required).  
+> 👉 [**Download Android APK from GitHub Releases**](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases)
+
 This directory contains standalone installers, build helpers, and service scripts to build and run **HamClock** natively on Android devices via **Termux**, without altering any upstream source code.
 
 <p align="center">

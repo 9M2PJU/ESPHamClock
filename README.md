@@ -9,7 +9,7 @@
 [![AUR package](https://img.shields.io/aur/version/hamclock-git?color=1793D1&label=AUR&logo=archlinux&style=for-the-badge)](https://aur.archlinux.org/packages/hamclock-git)
 [![Snap Store](https://img.shields.io/badge/Snap%20Store-Stable-E95420.svg?style=for-the-badge&logo=snapcraft&logoColor=white)](https://snapcraft.io/hamclock)
 [![Windows Support](https://img.shields.io/badge/Windows-Native%20.exe%20%7C%20WSL2%20%7C%20Docker-0078D6.svg?style=for-the-badge&logo=windows&logoColor=white)](docs/WINDOWS.md)
-[![Android Support](https://img.shields.io/badge/Android-Termux%20%7C%20Web-3DDC84.svg?style=for-the-badge&logo=android&logoColor=white)](docs/ANDROID.md)
+[![Android Support](https://img.shields.io/badge/Android-APK%20App%20%7C%20Termux-3DDC84.svg?style=for-the-badge&logo=android&logoColor=white)](docs/ANDROID.md)
 [![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2F9m2pju%2F9m2pju--hamclock--docker-2496ED.svg?style=for-the-badge&logo=docker&logoColor=white)](https://github.com/9M2PJU/9M2PJU-HamClock-Installer/pkgs/container/9m2pju-hamclock-docker)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-9M2PJU-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/9m2pju)
 [![Wise](https://img.shields.io/badge/Wise-faizulz13-163300?style=for-the-badge&logo=wise&logoColor=white)](https://wise.com/pay/me/faizulz13)
@@ -27,6 +27,8 @@
 [OHB Migration](#-the-open-hamclock-backend-ohb-era) •
 [Features](#-feature-matrix) •
 [Quick Install](#-one-liner-quick-install) •
+[Android App](#-android-support-native-apk--termux) •
+[Windows](#-windows-support-native-exe-powershell--wsl2) •
 [Docker Setup](#-docker--docker-compose) •
 [Rotator & Radio](#-rotator--radio-cat-integration) •
 [Docs](#-documentation-library) •
@@ -99,8 +101,13 @@ curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/ma
 curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | bash
 ```
 
-### Android (Termux)
-> *Turns any Android phone or tablet into a dedicated, low-power (<3W) touch clock.*
+### Android (Official Native App - APK) ⭐
+> *100% Native Embedded C++ Engine — No Termux or root required.*
+Download the latest APK directly from [GitHub Releases](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases):
+- [📥 **Download Universal APK (`9M2PJU-HamClock.apk`)**](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases/latest)
+
+### Android (Termux CLI)
+> *Turns any Android phone or tablet into a dedicated, low-power (<3W) touch clock via Termux.*
 ```bash
 pkg update -y && pkg install -y curl && bash -c "$(curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/termux/install.sh)"
 ```
@@ -218,6 +225,7 @@ For instant installation without compiling from source, pre-built binary package
 
 | Package Format | Target Operating Systems | Supported Architectures |
 | :--- | :--- | :--- |
+| **`Android (.apk)`** | Android Phones, Tablets, Android TV Boxes (Android 5.0+) | Universal, `arm64-v8a`, `armeabi-v7a`, `x86_64`, `x86` |
 | **`AUR`** | Arch Linux, Manjaro, EndeavourOS, CachyOS | `x86_64`, `aarch64`, `armv7h` |
 | **`Snap`** | Ubuntu, Debian, Fedora, Arch Linux, Manjaro, openSUSE | `amd64`, `arm64`, `armhf` |
 | **`.deb`** | Debian, Ubuntu, Raspberry Pi OS, Armbian, Linux Mint | `amd64`, `arm64`, `armhf` |
@@ -315,19 +323,37 @@ irm https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/scri
 
 ---
 
-## 📱 Android & Termux Support
+## 📱 Android Support (Native APK & Termux)
 
-Turn spare Android tablets or phones into permanent, low-power (<3W) **shack touch clocks**:
+Turn spare Android tablets, phones, or TV boxes into permanent, low-power (<3W) **shack touch clocks** with two installation methods:
 
 <p align="center">
   <img src="docs/images/9m2pju-hamclock-android.jpg" alt="HamClock running on Android Phone using Termux with Fully Kiosk Browser" width="700" />
 </p>
 
+### Option A: Official Standalone Android App (.apk) [Recommended] ⭐
+
+The official standalone Android APK runs a 100% native embedded C++ engine directly on Android. No Termux, root, or Linux chroot needed!
+
+- **🚀 100% Native Embedded C++ Engine**: Runs the full HamClock backend natively.
+- **📱 Edge-to-Edge Fullscreen Display**: Hardware-accelerated UI with responsive multi-touch.
+- **🔋 24/7 Background Foreground Service**: Built-in WakeLock/WifiLock support to prevent sleep.
+- **🌐 Multi-Device LAN Streaming**: View and control HamClock over WiFi at `http://<PHONE-IP>:8081/live.html`.
+- **🔄 Auto-Start on Boot**: Toggle in settings for dedicated tablet monitors.
+
+📥 **Download Packages from [GitHub Releases](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases):**
+- [📥 **Download Universal APK (`9M2PJU-HamClock.apk`)**](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases/latest) *(Recommended — Universal for all devices)*
+- **Architecture-Specific APKs:** `arm64-v8a` (64-bit ARM), `armeabi-v7a` (32-bit ARM), `x86_64`, `x86`
+
+---
+
+### Option B: Android via Termux CLI (DIY)
+
 ```bash
 pkg update -y && pkg install -y curl && bash -c "$(curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/termux/install.sh)"
 ```
 
-### Quick Non-Interactive Target Selection:
+#### Quick Non-Interactive Target Selection:
 ```bash
 # 1600x960 (Recommended for Tablets & 1080p Screens)
 TARGET=1600x960 bash -c "$(curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/termux/install.sh)"
@@ -336,10 +362,10 @@ TARGET=1600x960 bash -c "$(curl -fsSL https://raw.githubusercontent.com/9M2PJU/9
 TARGET=800x480 bash -c "$(curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/termux/install.sh)"
 ```
 
-### Full-Screen & 24/7 Shack Operation:
+#### Full-Screen & 24/7 Shack Operation:
 1. **Background Running & Battery Saver**: Run `termux-wake-lock && hamclock -k &` and set Android **Settings ➔ Apps ➔ Termux ➔ Battery ➔ Unrestricted** (disable Battery Saver so Android does not suspend HamClock).
 2. **Best Full-Screen & Auto-Fit View**: Install [**Fully Kiosk Browser**](https://play.google.com/store/apps/details?id=de.ozerov.fully&hl=en) from Google Play and set Start URL to `http://localhost:8081/live.html`.
-3. For detailed kiosk settings and autostart on boot, see the [Android & Termux Guide](docs/ANDROID.md).
+3. For detailed kiosk settings, autostart on boot, and native X11 guides, see the [Android & Termux Guide](docs/ANDROID.md).
 
 ---
 

@@ -1,6 +1,6 @@
-# 📱 Android & Termux Installation Guide
+# 📱 HamClock for Android Installation Guide
 
-**9M2PJU HamClock (Open HamClock - OHB Edition)** can run natively on any **Android phone, tablet, or TV box** using [Termux](https://termux.dev/). 
+**9M2PJU HamClock (Open HamClock - OHB Edition)** can run on any **Android phone, tablet, or TV box (Android 5.0+)**. 
 
 Repurposing an old or spare Android tablet makes one of the **cheapest, lowest-power (<3W), and most responsive dedicated HamClock touch dashboards** for your amateur radio shack!
 
@@ -10,7 +10,59 @@ Repurposing an old or spare Android tablet makes one of the **cheapest, lowest-p
 
 ---
 
-## ⚡ 1-Liner Quick Install (Termux)
+## ⚡ Choose Your Installation Method
+
+| Method | Best For | Requirements | Setup Complexity |
+| :--- | :--- | :--- | :--- |
+| [**Method 1: Official Android App (.apk)**](#-method-1-official-standalone-android-app-apk-recommended) ⭐ | **Most Users** | Android 5.0+ | 🟢 1-Click Install (No CLI) |
+| [**Method 2: Termux &amp; Fully Kiosk**](#-method-2-termux--fully-kiosk-browser-diy--command-line) | **Power Users &amp; CLI Fans** | Termux (F-Droid) | 🟡 1-Line Script |
+
+---
+
+## 📥 Method 1: Official Standalone Android App (.apk) [Recommended]
+
+The official **9M2PJU HamClock Android App** is a standalone, full-featured native application with an embedded C++ engine. No Termux, Linux chroot, or root permissions required!
+
+### 📦 Download Latest Release
+
+Download the latest APK directly from [**GitHub Releases**](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases):
+
+- [📥 **Download Universal APK (`9M2PJU-HamClock.apk`)**](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases/latest) *(Recommended — Works on all Android devices)*
+
+#### Architecture-Specific Packages:
+- **`9M2PJU-HamClock-arm64-v8a.apk`** — 64-bit ARM (Modern phones & tablets)
+- **`9M2PJU-HamClock-armeabi-v7a.apk`** — 32-bit ARM (Older phones & tablets)
+- **`9M2PJU-HamClock-x86_64.apk`** — 64-bit x86 (Android x86 PCs & emulators)
+- **`9M2PJU-HamClock-x86.apk`** — 32-bit x86 (Older Intel Android devices)
+
+🔗 **All Releases & Source:** [https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases)
+
+---
+
+### ✨ App Highlights & Features
+
+- **🚀 100% Native Embedded C++ Engine**: Runs the full HamClock backend and telemetry pipeline natively on Android.
+- **📱 Edge-to-Edge Immersive Fullscreen**: Hardware-accelerated UI that automatically scales to your display with responsive multi-touch controls.
+- **🔋 24/7 Shack Station Background Daemon**: Optional foreground service with WakeLock and WifiLock support to keep HamClock running continuously.
+- **🌐 Multi-Device Shack / LAN Sharing**: Access the live interactive web mirror from your PC, Mac, or iPad over WiFi at `http://<PHONE-IP>:8081/live.html`.
+- **📜 In-App Diagnostic Logs**: Built-in real-time log viewer for network and telemetry diagnostics.
+- **🔄 Auto-Start on Boot**: Dedicated toggle to automatically launch HamClock whenever the Android device powers on.
+
+---
+
+### 🛠️ Quick Setup (APK)
+
+1. Download **`9M2PJU-HamClock.apk`** from [GitHub Releases](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases).
+2. Tap the downloaded file to install (grant permission to *Install Unknown Apps* if prompted).
+3. Open **HamClock** from your app drawer.
+4. On first launch, tap anywhere on the screen to open the Setup dialog, then enter your **Callsign**, **Grid Square / Lat-Long**, and display preferences.
+5. *(Optional)* In app settings, enable **Keep Screen On** and **Auto-Start on Boot** for permanent wall-mounted or desk-mounted operation.
+
+---
+
+## 💻 Method 2: Termux & Fully Kiosk Browser (DIY / Command Line)
+
+### ⚡ 1-Liner Quick Install (Termux)
 
 Open the **Termux** app and paste this single command:
 
@@ -18,18 +70,14 @@ Open the **Termux** app and paste this single command:
 pkg update -y && pkg install -y curl && bash -c "$(curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/termux/install.sh)"
 ```
 
----
+### 📖 Step-by-Step Setup Walkthrough
 
-## 📖 Step-by-Step Setup Walkthrough
-
-### Step 1: Install Termux
+#### Step 1: Install Termux
 > ⚠️ **Important:** Do **NOT** install Termux from Google Play Store (it is deprecated and unmaintained). Install the latest release from:
 - [**F-Droid (Recommended)**](https://f-droid.org/en/packages/com.termux/)
 - [**GitHub Releases**](https://github.com/termux/termux-app/releases)
 
----
-
-### Step 2: Run the Installer
+#### Step 2: Run the Installer
 Open Termux and run the installer one-liner:
 ```bash
 pkg update -y && pkg install -y curl && bash -c "$(curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/termux/install.sh)"
@@ -41,7 +89,7 @@ The script will automatically:
 4. Apply Android Bionic `fdsan` protection.
 5. Compile the optimized native ARM binary and install `hamclock` to `$PREFIX/bin/hamclock`.
 
-### Step 3: Keep Termux Awake & Launch HamClock
+#### Step 3: Keep Termux Awake & Launch HamClock
 1. Prevent Android from suspending Termux:
    ```bash
    termux-wake-lock
@@ -54,11 +102,7 @@ The script will automatically:
    ```
    *(The `-k` flag skips the setup countdown and boots immediately).*
 
----
-
-### Step 4: Open in Fully Kiosk Browser (Best Full-Screen Experience)
-
-For the best, seamless, borderless full-screen display that automatically fits your screen:
+#### Step 4: Open in Fully Kiosk Browser (Best Full-Screen Experience)
 
 1. Install [**Fully Kiosk Browser & Launcher**](https://play.google.com/store/apps/details?id=de.ozerov.fully&hl=en) from the Google Play Store.
 2. In Fully Kiosk Browser settings, set the **Start URL** to:
@@ -70,9 +114,10 @@ For the best, seamless, borderless full-screen display that automatically fits y
    - Automatically scales the HamClock display to perfectly fit your device screen.
    - Keeps the screen awake for 24/7 continuous shack monitoring.
    - Can optionally autostart on device boot.
+
 ---
 
-## 🎯 Direct Non-Interactive Resolution Install
+### 🎯 Direct Non-Interactive Resolution Install
 
 You can bypass the interactive menu by setting `TARGET`:
 
