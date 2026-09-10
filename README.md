@@ -284,14 +284,14 @@ HamClock now builds as a **native Windows `.exe`** - no WSL, Docker, or X11 requ
 
 ### Option A: Download Pre-Built .exe from GitHub Releases
 
-Download the latest `mingw-web-*.exe` from the [GitHub Releases page](https://github.com/9M2PJU/9M2PJU-HamClock-Installer/releases). Four resolutions are available:
+Download the latest `HamClock-4.32-windows-*.exe` from the [GitHub Releases page](https://github.com/9M2PJU/9M2PJU-HamClock-Installer/releases). Four resolutions are available:
 
-| File | Resolution | Use Case |
-| :--- | :--- | :--- |
-| `mingw-web-800x480.exe` | 800 x 480 | Standard, smaller displays |
-| `mingw-web-1600x960.exe` | 1600 x 960 | Large, recommended default |
-| `mingw-web-2400x1440.exe` | 2400 x 1440 | Hi-DPI |
-| `mingw-web-3200x1920.exe` | 3200 x 1920 | 4K UHD |
+| Executable File | Resolution | Recommended Use |
+| :--- | :---: | :--- |
+| `HamClock-4.32-windows-800x480.exe` | 800 × 480 | Standard, smaller displays |
+| `HamClock-4.32-windows-1600x960.exe` | 1600 × 960 | Large, recommended default |
+| `HamClock-4.32-windows-2400x1440.exe` | 2400 × 1440 | Hi-DPI |
+| `HamClock-4.32-windows-3200x1920.exe` | 3200 × 1920 | 4K UHD |
 
 Run the `.exe` from Command Prompt or PowerShell, then open `http://localhost:8081/live.html` in any browser. No installation required - the executable is statically linked and only depends on Windows system DLLs.
 
@@ -311,7 +311,7 @@ make mingw-all-web
 make mingw-web-800x480
 ```
 
-Copy the resulting `mingw-web-*.exe` to your Windows machine and run it.
+Copy the resulting `HamClock-4.32-windows-*.exe` to your Windows machine and run it.
 
 ### Option C: PowerShell Installer (WSL2 or Docker)
 

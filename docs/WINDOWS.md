@@ -10,7 +10,7 @@ HamClock can be cross-compiled to a native Windows `.exe` that runs the web-only
 
 ### Option A: Download Pre-Built .exe
 
-Download the latest `mingw-web-*.exe` from the [GitHub Releases page](https://github.com/9M2PJU/9M2PJU-HamClock-Installer/releases). Four resolutions are available (800x480, 1600x960, 2400x1440, 3200x1920). Run the `.exe` from Command Prompt or PowerShell, then open `http://localhost:8081/live.html` in any browser. No installation required.
+Download the latest `HamClock-4.32-windows-*.exe` from the [GitHub Releases page](https://github.com/9M2PJU/9M2PJU-HamClock-Installer/releases). Four resolutions are available (800x480, 1600x960, 2400x1440, 3200x1920). Run the `.exe` from Command Prompt or PowerShell, then open `http://localhost:8081/live.html` in any browser. No installation required.
 
 ### Option B: Building (from Linux with MinGW-w64)
 
@@ -33,14 +33,14 @@ make mingw-web-2400x1440
 make mingw-web-3200x1920
 ```
 
-The resulting `mingw-web-*.exe` files are statically linked PE32+ executables that only depend on Windows system DLLs (KERNEL32, WS2_32, and the Windows Universal CRT). No additional runtime DLLs are needed.
+The resulting executables are statically linked PE32+ binaries that only depend on Windows system DLLs (KERNEL32, WS2_32, and the Windows Universal CRT). No additional runtime DLLs are needed.
 
 ### Running on Windows
 
 Copy the `.exe` to your Windows machine and run it from a Command Prompt or PowerShell:
 
-```
-hamclock-web-800x480.exe
+```cmd
+HamClock-4.32-windows-1600x960.exe
 ```
 
 Then open your browser to:

@@ -101,10 +101,22 @@ jobs:
       - name: Build All Windows .exe Targets
         run: |
           make mingw-all-web
+          x86_64-w64-mingw32-strip mingw-web-*.exe
+          mkdir -p win-dist
+          TAG="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.release_tag }}"
+          fi
+          VER="${TAG#v}"
+          for res in 800x480 1600x960 2400x1440 3200x1920; do
+            if [ -f "mingw-web-$res.exe" ]; then
+              cp "mingw-web-$res.exe" "win-dist/HamClock-${VER}-windows-${res}.exe"
+            fi
+          done
 
       - name: Verify Executables
         run: |
-          for f in mingw-web-*.exe; do
+          for f in win-dist/*.exe; do
             echo "--- $f ---"
             file "$f"
             ls -la "$f"
@@ -114,7 +126,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: packages-windows-exe
-          path: mingw-web-*.exe
+          path: win-dist/*.exe
 
   create-release:
     name: Publish GitHub Release
@@ -191,16 +203,16 @@ jobs:
             ```
             
             #### 🪟 Native Windows Executable (`.exe`)
-            - **800x480**: `mingw-web-800x480.exe`
-            - **1600x960**: `mingw-web-1600x960.exe`
-            - **2400x1440**: `mingw-web-2400x1440.exe`
-            - **3200x1920**: `mingw-web-3200x1920.exe`
+            - **800x480**: `HamClock-${{ steps.vars.outputs.ver }}-windows-800x480.exe`
+            - **1600x960**: `HamClock-${{ steps.vars.outputs.ver }}-windows-1600x960.exe`
+            - **2400x1440**: `HamClock-${{ steps.vars.outputs.ver }}-windows-2400x1440.exe`
+            - **3200x1920**: `HamClock-${{ steps.vars.outputs.ver }}-windows-3200x1920.exe`
             
             No WSL, Docker, or X11 required. Statically linked, only depends on Windows system DLLs.
             
             ```cmd
             :: Run from Command Prompt or PowerShell
-            mingw-web-1600x960.exe
+            HamClock-${{ steps.vars.outputs.ver }}-windows-1600x960.exe
             ```
             
             Then open `http://localhost:8081/live.html` in any browser.
