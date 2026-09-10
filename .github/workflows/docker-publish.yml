@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - Staging
     tags:
       - 'v*'
   workflow_dispatch:
@@ -44,7 +43,6 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-            type=raw,value=staging,enable=${{ github.ref == 'refs/heads/Staging' }}
             type=ref,event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
