@@ -6,6 +6,40 @@
 #include "IPAddress.h"
 #include "WiFiClient.h"
 
+#ifdef _WIN32
+/* On Windows, socket fds are not C runtime file descriptors, so read/write/close
+ * must use Winsock equivalents. fcntl F_GETFL/F_SETFL/O_NONBLOCK -> ioctlsocket.
+ * Winsock errors come from WSAGetLastError(), not errno, so we sync errno after each call.
+ */
+static inline int hc_sock_read(int fd, void *buf, int len) {
+    int r = recv(fd, (char*)buf, len, 0);
+    if (r < 0) errno = WSAGetLastError();
+    return r;
+}
+static inline int hc_sock_write(int fd, const void *buf, int len) {
+    int r = send(fd, (const char*)buf, len, 0);
+    if (r < 0) errno = WSAGetLastError();
+    return r;
+}
+static inline int hc_sock_close(int fd) {
+    return closesocket(fd);
+}
+static inline int hc_sock_set_nonblock(int fd, int on) {
+    u_long mode = on ? 1 : 0;
+    int r = ioctlsocket(fd, FIONBIO, &mode);
+    if (r != 0) errno = WSAGetLastError();
+    return r;
+}
+#else
+#define hc_sock_read(fd, buf, len)   ::read((fd), (buf), (len))
+#define hc_sock_write(fd, buf, len)  ::write((fd), (buf), (len))
+#define hc_sock_close(fd)            ::close((fd))
+static inline int hc_sock_set_nonblock(int fd, int on) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    return fcntl(fd, F_SETFL, on ? (flags | O_NONBLOCK) : flags);
+}
+#endif
+
 // default constructor
 WiFiClient::WiFiClient()
 {
@@ -43,17 +77,18 @@ WiFiClient::operator bool()
 
 int WiFiClient::connect_to (int sockfd, struct sockaddr *serv_addr, int addrlen, int to_ms)
 {
-    unsigned int len;
+    socklen_t len;
     int err;
-    int flags;
     int ret;
 
     /* set socket non-blocking */
-    flags = fcntl (sockfd, F_GETFL, 0);
-    (void) fcntl (sockfd, F_SETFL, flags | O_NONBLOCK);
+    hc_sock_set_nonblock(sockfd, 1);
 
     /* start the connect */
     ret = ::connect (sockfd, serv_addr, addrlen);
+#ifdef _WIN32
+    if (ret < 0) errno = WSAGetLastError();
+#endif
     if (ret < 0 && errno != EINPROGRESS)
         return (-1);
 
@@ -65,7 +100,11 @@ int WiFiClient::connect_to (int sockfd, struct sockaddr *serv_addr, int addrlen,
     /* verify connection really completed */
     len = sizeof(err);
     err = 0;
+#ifdef _WIN32
+    ret = getsockopt (sockfd, SOL_SOCKET, SO_ERROR, (char *) &err, (int *)&len);
+#else
     ret = getsockopt (sockfd, SOL_SOCKET, SO_ERROR, (char *) &err, &len);
+#endif
     if (ret < 0)
         return (-1);
     if (err != 0) {
@@ -74,7 +113,7 @@ int WiFiClient::connect_to (int sockfd, struct sockaddr *serv_addr, int addrlen,
     }
 
     /* looks good - restore blocking */
-    if (fcntl (sockfd, F_SETFL, flags) < 0)
+    if (hc_sock_set_nonblock(sockfd, 0) < 0)
         printf ("WiFiCl: fcntl fd %d: %s\n", sockfd, strerror(errno));
 
     return (0);
@@ -164,12 +203,14 @@ bool WiFiClient::connect(const char *host, int port)
     if (connect_to (sockfd, aip->ai_addr, aip->ai_addrlen, 8000) < 0) {
         printf ("WiFiCl: connect(%s:%d): %s\n", host, port, strerror(errno));
         freeaddrinfo (aip);
-        close (sockfd);
+        hc_sock_close (sockfd);
         return (false);
     }
 
     /* handle write errors inline */
+#ifndef _WIN32
     signal (SIGPIPE, SIG_IGN);
+#endif
 
     /* ok start fresh */
     if (debugLevel (DEBUG_NET, 1))
@@ -195,7 +236,11 @@ void WiFiClient::setNoDelay(bool on)
 {
     // control Nagle algorithm
     socklen_t flag = on;
+#ifdef _WIN32
+    if (setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (const char *) &flag, sizeof(flag)) < 0)
+#else
     if (setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (void *) &flag, sizeof(flag)) < 0)
+#endif
         printf ("WiFiCl: TCP_NODELAY(%d): %s\n", on, strerror(errno));     // not fatal
 }
 
@@ -211,7 +256,7 @@ void WiFiClient::stop()
               if (debugLevel (DEBUG_NET, 1))
                 printf ("WiFiCl: stopping fd %d\n", socket);
         shutdown (socket, SHUT_RDWR);
-        close (socket);
+        hc_sock_close (socket);
         socket = -1;
 
     } else if (debugLevel (DEBUG_NET, 2))
@@ -269,7 +314,7 @@ int WiFiClient::available (int pending_ms)
         return (0);
 
     // read more
-    int nr = ::read(socket, peek, sizeof(peek));
+    int nr = hc_sock_read(socket, peek, sizeof(peek));
     if (nr > 0) {
         if (debugLevel (DEBUG_NET, 2))
             printf ("WiFiCl: available read(%d,%ld) %d\n", socket, (long)sizeof(peek), nr);
@@ -337,7 +382,7 @@ int WiFiClient::write (const uint8_t *buf, int n)
 
     int nw = 0;
     for (int ntot = 0; ntot < n; ntot += nw) {
-        nw = ::write (socket, buf+ntot, n-ntot);
+        nw = hc_sock_write (socket, buf+ntot, n-ntot);
         if (nw < 0) {
             // select says it won't block but it still might be temporarily EAGAIN
             if (errno != EAGAIN) {

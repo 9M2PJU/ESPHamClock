@@ -1,35 +1,36 @@
-name: esphamclock
-title: 9M2PJU ESPHamClock
+name: hamclock
+title: 9M2PJU HamClock
 base: core24
-version: '4.29'
+version: '4.32'
+license: MIT
 summary: Space Weather, Propagation & Telemetry Dashboard
 description: |
-  9M2PJU ESPHamClock (Open HamClock - OHB Edition) is an open-source space
+  9M2PJU HamClock (Open HamClock - OHB Edition) is an open-source space
   weather, VOACAP HF radio propagation modeling, satellite orbital tracking,
   DX cluster, and live telemetry dashboard for amateur radio operators.
 
 grade: stable
 confinement: strict
 website: https://hamclock.hamradio.my
-contact: 9m2pju@gmail.com
-issues: https://github.com/9M2PJU/9M2PJU-ESPHamClock-Installer/issues
-source-code: https://github.com/9M2PJU/9M2PJU-ESPHamClock-Installer
+contact: 9m2pju@hamradio.my
+issues: https://github.com/9M2PJU/9M2PJU-HamClock-Installer/issues
+source-code: https://github.com/9M2PJU/9M2PJU-HamClock-Installer
 
 platforms:
   amd64:
     build-on: [amd64]
     build-for: [amd64]
   arm64:
-    build-on: [arm64]
+    build-on: [amd64, arm64]
     build-for: [arm64]
   armhf:
-    build-on: [armhf]
+    build-on: [amd64, armhf]
     build-for: [armhf]
 
 apps:
-  esphamclock:
+  hamclock:
     command: bin/hamclock-launcher
-    desktop: share/applications/esphamclock.desktop
+    desktop: share/applications/hamclock.desktop
     plugs:
       - x11
       - network
@@ -48,42 +49,75 @@ parts:
       - g++
       - make
       - libx11-dev
+      - libgpiod-dev
       - zlib1g-dev
       - curl
       - git
+      - on amd64 to arm64:
+        - g++-aarch64-linux-gnu
+        - gcc-aarch64-linux-gnu
+        - libx11-dev:arm64
+        - libgpiod-dev:arm64
+        - zlib1g-dev:arm64
+      - on amd64 to armhf:
+        - g++-arm-linux-gnueabihf
+        - gcc-arm-linux-gnueabihf
+        - libx11-dev:armhf
+        - libgpiod-dev:armhf
+        - zlib1g-dev:armhf
+    build-environment:
+      - on amd64 to arm64:
+        - CXX: aarch64-linux-gnu-g++
+        - CC: aarch64-linux-gnu-gcc
+      - on amd64 to armhf:
+        - CXX: arm-linux-gnueabihf-g++
+        - CC: arm-linux-gnueabihf-gcc
     stage-packages:
       - libx11-6
+      - libgpiod2
       - zlib1g
       - libcurl4
     override-build: |
       mkdir -p $CRAFT_PART_INSTALL/lib/hamclock $CRAFT_PART_INSTALL/bin $CRAFT_PART_INSTALL/share/applications $CRAFT_PART_INSTALL/share/icons/hicolor/128x128/apps
-      
-      make -j$(nproc) hamclock-800x480
+      HAMCLOCK_LIBS="-lpthread -larduino -lzlib-hc -lws -lX11 -lgpiod"
+      # wsServer/Makefile uses CC, others use CXX; pass both for cross-compilation
+      CROSS_ARGS="${CXX:+CXX=$CXX CC=$CXX}"
+
+      make -j$(nproc) hamclock-800x480 LIBS="$HAMCLOCK_LIBS" $CROSS_ARGS
       cp hamclock-800x480 $CRAFT_PART_INSTALL/lib/hamclock/
       make clean
 
-      make -j$(nproc) hamclock-1600x960
+      make -j$(nproc) hamclock-1600x960 LIBS="$HAMCLOCK_LIBS" $CROSS_ARGS
       cp hamclock-1600x960 $CRAFT_PART_INSTALL/lib/hamclock/
       make clean
 
-      make -j$(nproc) hamclock-2400x1440
+      make -j$(nproc) hamclock-2400x1440 LIBS="$HAMCLOCK_LIBS" $CROSS_ARGS
       cp hamclock-2400x1440 $CRAFT_PART_INSTALL/lib/hamclock/
       make clean
 
-      make -j$(nproc) hamclock-3200x1920
+      make -j$(nproc) hamclock-3200x1920 LIBS="$HAMCLOCK_LIBS" $CROSS_ARGS
       cp hamclock-3200x1920 $CRAFT_PART_INSTALL/lib/hamclock/
       make clean
 
-      make -j$(nproc) hamclock-web-800x480
+      make -j$(nproc) hamclock-web-800x480 LIBS="$HAMCLOCK_LIBS" $CROSS_ARGS
       cp hamclock-web-800x480 $CRAFT_PART_INSTALL/lib/hamclock/
       make clean
 
-      make -j$(nproc) hamclock-web-1600x960
+      make -j$(nproc) hamclock-web-1600x960 LIBS="$HAMCLOCK_LIBS" $CROSS_ARGS
       cp hamclock-web-1600x960 $CRAFT_PART_INSTALL/lib/hamclock/
       make clean
 
       install -m 755 packaging/hamclock-launcher.sh $CRAFT_PART_INSTALL/bin/hamclock-launcher
-      install -m 644 flatpak/my.hamradio.HamClock.desktop $CRAFT_PART_INSTALL/share/applications/esphamclock.desktop
-      sed -i 's/Exec=hamclock/Exec=esphamclock/' $CRAFT_PART_INSTALL/share/applications/esphamclock.desktop
-      sed -i 's/Icon=my.hamradio.HamClock/Icon=esphamclock/' $CRAFT_PART_INSTALL/share/applications/esphamclock.desktop
-      install -m 644 flatpak/my.hamradio.HamClock.png $CRAFT_PART_INSTALL/share/icons/hicolor/128x128/apps/esphamclock.png
+      cat > $CRAFT_PART_INSTALL/share/applications/hamclock.desktop <<'DESKTOP'
+      [Desktop Entry]
+      Name=HamClock
+      GenericName=Amateur Radio Space Weather & Propagation Clock
+      Comment=Space weather, VOACAP propagation, satellite tracker and telemetry dashboard for radio amateurs
+      Exec=hamclock
+      Icon=hamclock
+      Terminal=false
+      Type=Application
+      Categories=Network;HamRadio;Utility;Science;Astronomy;
+      StartupNotify=true
+      DESKTOP
+      install -m 644 deploy/hamclock.png $CRAFT_PART_INSTALL/share/icons/hicolor/128x128/apps/hamclock.png

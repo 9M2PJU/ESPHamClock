@@ -9,6 +9,14 @@
 #include <stdint.h>
 #include <string>
 
+/* On Windows, include win32_compat.h before ArduinoLib.h so that
+ * windows.h is processed before the INPUT/OUTPUT macros below are
+ * defined. The compat header undefs the Windows INPUT/OUTPUT macros
+ * so they can be safely redefined here. */
+#ifdef _WIN32
+#include "win32_compat.h"
+#endif
+
 #include "ArduinoLib.h"
 
 #define	String std::string

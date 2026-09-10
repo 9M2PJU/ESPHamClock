@@ -1,4 +1,4 @@
-name: Build & Release Packages (.deb, .rpm, .appimage)
+name: Build & Release Packages (.deb, .rpm, .appimage, .exe)
 
 on:
   push:
@@ -60,23 +60,12 @@ jobs:
       - name: Build HamClock Binaries in Container (${{ matrix.docker_platform }})
         run: |
           mkdir -p dist
+          chmod +x packaging/*.sh
           # Run compilation inside target architecture container
           docker run --rm --platform ${{ matrix.docker_platform }} \
             -v "$PWD":/workspace \
             -w /workspace \
-            debian:bookworm-slim /bin/bash -c "
-              set -e
-              apt-get update && \
-              apt-get install -y build-essential make g++ libx11-dev libgpiod-dev pkg-config
-              mkdir -p /tmp/built-bin
-              for t in hamclock-800x480 hamclock-1600x960 hamclock-2400x1440 hamclock-3200x1920 hamclock-web-800x480 hamclock-web-1600x960; do
-                echo '=== Compiling target: \$t ==='
-                make clean
-                make \$t -j\$(nproc)
-                cp \$t /tmp/built-bin/
-              done
-              cp /tmp/built-bin/* ./
-            "
+            debian:bookworm-slim ./packaging/build-in-container.sh
 
       - name: Package .deb (${{ matrix.arch }})
         run: |
@@ -97,9 +86,39 @@ jobs:
           name: packages-${{ matrix.arch }}
           path: dist/*
 
+  build-windows-exe:
+    name: Build Windows .exe (MinGW cross-compile)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Install MinGW-w64 Toolchain
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y g++-mingw-w64-x86-64
+
+      - name: Build All Windows .exe Targets
+        run: |
+          make mingw-all-web
+
+      - name: Verify Executables
+        run: |
+          for f in mingw-web-*.exe; do
+            echo "--- $f ---"
+            file "$f"
+            ls -la "$f"
+          done
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-windows-exe
+          path: mingw-web-*.exe
+
   create-release:
     name: Publish GitHub Release
-    needs: build-packages
+    needs: [build-packages, build-windows-exe]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -130,47 +149,62 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.vars.outputs.tag }}
-          name: "9M2PJU ESPHamClock ${{ steps.vars.outputs.tag }} (OHB Edition)"
+          name: "9M2PJU HamClock ${{ steps.vars.outputs.tag }} (OHB Edition)"
           body: |
-            ## 9M2PJU ESPHamClock (Open HamClock - OHB Edition) ${{ steps.vars.outputs.tag }}
+            ## 9M2PJU HamClock (Open HamClock - OHB Edition) ${{ steps.vars.outputs.tag }}
             
             ### 📦 Download Pre-Built Installers
             
             #### 🐧 Debian / Ubuntu / Raspberry Pi OS (`.deb`)
-            - **64-bit x86 (amd64)**: `esphamclock_4.29-1_amd64.deb`
-            - **64-bit ARM (arm64 / RPi 4/5)**: `esphamclock_4.29-1_arm64.deb`
-            - **32-bit ARM (armhf / RPi 2/3 / Raspbian)**: `esphamclock_4.29-1_armhf.deb`
+            - **64-bit x86 (amd64)**: `hamclock_4.29-1_amd64.deb`
+            - **64-bit ARM (arm64 / RPi 4/5)**: `hamclock_4.29-1_arm64.deb`
+            - **32-bit ARM (armhf / RPi 2/3 / Raspbian)**: `hamclock_4.29-1_armhf.deb`
             
             ```bash
             # Install .deb
-            sudo dpkg -i esphamclock_4.29-1_*.deb
+            sudo dpkg -i hamclock_4.29-1_*.deb
             sudo apt-get install -f # resolve any dependencies
             ```
             
             #### 🎩 Fedora / RHEL / openSUSE (`.rpm`)
-            - **x86_64**: `esphamclock-4.29-1.x86_64.rpm`
-            - **aarch64 (ARM64)**: `esphamclock-4.29-1.aarch64.rpm`
-            - **armhfp (ARM 32-bit)**: `esphamclock-4.29-1.armhfp.rpm`
+            - **x86_64**: `hamclock-4.29-1.x86_64.rpm`
+            - **aarch64 (ARM64)**: `hamclock-4.29-1.aarch64.rpm`
+            - **armhfp (ARM 32-bit)**: `hamclock-4.29-1.armhfp.rpm`
             
             ```bash
             # Install .rpm
-            sudo rpm -Uvh esphamclock-4.29-1.*.rpm
+            sudo rpm -Uvh hamclock-4.29-1.*.rpm
             ```
             
             #### 🚀 Universal AppImage (Portable Executable)
-            - **x86_64**: `ESPHamClock-4.29-x86_64.AppImage`
-            - **aarch64**: `ESPHamClock-4.29-aarch64.AppImage`
-            - **armhf**: `ESPHamClock-4.29-armhf.AppImage`
+            - **x86_64**: `HamClock-4.29-x86_64.AppImage`
+            - **aarch64**: `HamClock-4.29-aarch64.AppImage`
+            - **armhf**: `HamClock-4.29-armhf.AppImage`
             
             ```bash
             # Run AppImage
-            chmod +x ESPHamClock-4.29-*.AppImage
-            ./ESPHamClock-4.29-*.AppImage
+            chmod +x HamClock-4.29-*.AppImage
+            ./HamClock-4.29-*.AppImage
             ```
+            
+            #### 🪟 Native Windows Executable (`.exe`)
+            - **800x480**: `mingw-web-800x480.exe`
+            - **1600x960**: `mingw-web-1600x960.exe`
+            - **2400x1440**: `mingw-web-2400x1440.exe`
+            - **3200x1920**: `mingw-web-3200x1920.exe`
+            
+            No WSL, Docker, or X11 required. Statically linked, only depends on Windows system DLLs.
+            
+            ```cmd
+            :: Run from Command Prompt or PowerShell
+            mingw-web-1600x960.exe
+            ```
+            
+            Then open `http://localhost:8081/live.html` in any browser.
             
             #### 🐳 Multi-Arch Docker
             ```bash
-            docker pull ghcr.io/9m2pju/9m2pju-esphamclock-installer:latest
+            docker pull ghcr.io/9m2pju/9m2pju-hamclock-docker:latest
             ```
             
             ---

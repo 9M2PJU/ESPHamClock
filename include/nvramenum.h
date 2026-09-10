@@ -376,30 +376,85 @@ typedef enum {
     // 253 -- retain the experimental marker so already-patched EEPROM files remain compatible
     NV_PLOTSCHEMA,                 // reserved plot settings schema marker
 
-    // 254 -- appended so all prior EEPROM addresses remain unchanged
+    // 254
     NV_PANE0ROTSET_HI,            // high 32 bits of pane 0 PlotChoice rotation mask
     NV_PANE1ROTSET_HI,            // high 32 bits of pane 1 PlotChoice rotation mask
     NV_PANE2ROTSET_HI,            // high 32 bits of pane 2 PlotChoice rotation mask
     NV_PANE3ROTSET_HI,            // high 32 bits of pane 3 PlotChoice rotation mask
 
-    // 255 -- appended so all prior EEPROM addresses remain unchanged
+    // 255
     NV_MESHWATCHLIST,             // comma-separated Meshtastic node IDs to draw neighbour links for
 
-    // 256 -- appended so all prior EEPROM addresses remain unchanged
+    // 256
     NV_PIAWAREHOST,                // user's PiAware ADS-B receiver host name or IP, else unused
 
-    // 257 -- appended so all prior EEPROM addresses remain unchanged
+    // 257
     NV_ONTA_MODES,                 // ONTA mode filter bitmask (see ONTAMB_* in ontheair.cpp)
     NV_ONTA_BANDS,                 // ONTA band filter bitmask, 1 bit per HamBandSetting
 
-    // 258 -- appended so all prior EEPROM addresses remain unchanged
+    // 258
     NV_CTYBORDERS_ON,               // whether to show the country-borders overlay
 
-    // 259 -- appended so all prior EEPROM addresses remain unchanged
+    // 259
     NV_BORDERCOLOR,                 // country border overlay color as RGB565
     NV_STATECOLOR,                  // state/province border overlay color as RGB565
 
-	NV_N
+    // 260
+    NV_WEFAX_REGION,                // index into wefax_regions[] of last-selected region
+    NV_WEFAX_PRODUCT,               // index into wefax_products[] of last-selected product
+    NV_WEFAX_ENABLE,                // whether the WEFAX feature is offered at all (Setup screen)
+
+    // 261
+    NV_STORM_SHOWPATH,               // whether Trop Wx shows storm paths on the map
+
+    // 262
+    NV_MAINCLOCK_LOCAL,               // whether the main clocks-pane HMS/date shows DE-local time instead of UTC
+
+    // 263
+    NV_DXC_HIDEIOTA,                 // whether to hide the IOTA marker column in the DX Cluster pane
+    NV_DXC_MODES,                    // DX Cluster mode filter bitmask (see DXCMB_* in dxcluster.cpp)
+    NV_DXC_BANDS,                    // DX Cluster band filter bitmask, 1 bit per HamBandSetting
+    NV_APRSON,                        // whether APRS cluster pane is enabled (Setup)
+    NV_APRSHOST,                      // APRS-IS server host name or IP
+    NV_APRSPORT,                      // APRS-IS server port number
+    NV_APRSRADIUS,                    // nearby-station search radius, statute miles (canonical unit)
+    NV_APRSCATFILTER,                 // bitmask of APRSCategory values currently shown in the pane
+
+    // 264
+    NV_HAMALERT_PASSWD,             // HamAlert.org telnet password; blank means HamAlert pane is unused
+    NV_HAMALERT_LOGIN,              // HamAlert.org telnet login call sign; blank means use station call
+
+    // 265
+    NV_MARINE_ON,                   // whether the Special Marine Warning overlay/pane is enabled
+    NV_MARINE_AUTOPOP,              // whether a warning local to DE forces itself onto PANE_0
+    NV_MARINE_RADIUS,               // fallback geofence radius, statute miles, when no polygon given
+
+    // 266
+    NV_FIREWX_ON,                   // whether the Red Flag Warning overlay/pane is enabled
+    NV_FIREWX_AUTOPOP,              // whether a warning local to DE forces itself onto its target pane
+    NV_FIREWX_RADIUS,               // fallback geofence radius, statute miles, when no polygon given
+
+    // 267
+    NV_QUAKE_ON,                    // whether the earthquake overlay/pane is enabled
+    NV_QUAKE_AUTOPOP,               // whether a big-enough local quake forces itself onto its target pane
+    NV_QUAKE_RADIUS,                // "any magnitude" local radius, statute miles (scales up with mag)
+
+    // 268
+    NV_FIRES_ON,                    // whether the active-fire hotspot overlay is enabled
+
+    // 269
+    NV_ONTA_ORGMASK,                // ONTA org filter bitmask, one bit per known org (see
+                                     // ONTAOrgInfo/ontheair.cpp) -- replaces the old free-text
+                                     // NV_ONTAORG string filter, retired because a '+'-joined
+                                     // list of every known org's full name can exceed
+                                     // NV_ONTAORG_LEN (30 bytes) and silently truncate/corrupt
+
+    // 270
+    NV_PSK_SHOWONMAP,               // whether Live Spots are drawn on the map at all (paths, dots
+                                     // and farthest-spot targets); independent of NV_PSK_SHOWPATH,
+                                     // which only toggles the path lines within that map display
+
+    NV_N
 
 } NV_Name;
 

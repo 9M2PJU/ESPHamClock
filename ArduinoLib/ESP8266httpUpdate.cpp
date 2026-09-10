@@ -1,9 +1,44 @@
+#ifdef _WIN32
+
+/* Windows stub: OTA update relies on fork/exec/pipe/symlinks which are
+ * not available on Windows. Provide stubs so the object compiles and
+ * the rest of HamClock can link. All update attempts return failure. */
+
+#include <stdio.h>
+#include <string.h>
+
+#include "Arduino.h"
+#include "ESP.h"
+#include "ESP8266httpUpdate.h"
+
+class ESPhttpUpdate ESPhttpUpdate;
+
+ESPhttpUpdate::ESPhttpUpdate()
+{
+    err_lines_head = 0;
+    memset(err_lines_q, 0, sizeof(err_lines_q));
+}
+
+t_httpUpdate_return ESPhttpUpdate::update(WiFiClient &client, const char *url)
+{
+    (void)client;
+    (void)url;
+    printf("OTA update not supported on Windows\n");
+    return HTTP_UPDATE_FAILED;
+}
+
+int ESPhttpUpdate::getLastError(void) { return 0; }
+String ESPhttpUpdate::getLastErrorString(void) { return String("OTA not supported on Windows"); }
+void ESPhttpUpdate::onProgress(void (*cb)(int, int)) { (void)cb; }
+
+#else /* !_WIN32 */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/wait.h>
 
+#include <sys/wait.h>
 
 #include "Arduino.h"
 #include "ESP.h"
@@ -393,3 +428,5 @@ void ESPhttpUpdate::prError (const char *fmt, ...)
         // and log
         printf ("%s", msg);
 }
+
+#endif /* !_WIN32 */

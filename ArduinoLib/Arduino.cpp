@@ -10,7 +10,12 @@
 #include <fcntl.h>
 #include <sys/time.h>
 #include <sys/stat.h>
+
+#ifdef _WIN32
+#include "win32_compat.h"
+#else
 #include <sys/resource.h>
+#endif
 
 #include "Arduino.h"
 #include "timeout.h"
@@ -135,12 +140,20 @@ void delay (uint32_t ms)
 
 long random(int max)
 {
+#ifdef _WIN32
+        return (((long)rand() >> 3) % max);
+#else
         return ((::random() >> 3) % max);
+#endif
 }
 
 void randomSeed (int s)
 {
+#ifdef _WIN32
+    srand(s);
+#else
     ::srandom(s);
+#endif
 }
 
 uint16_t analogRead(int pin)
@@ -295,6 +308,7 @@ static void logSys()
         printf ("process id %d\n", getpid());
         printf ("built as %s %s\n", build_variables, our_make);
         printf ("working directory is %s\n", our_dir.c_str());
+#ifndef _WIN32
         printf ("ruid %d euid %d\n", getuid(), geteuid());
         if (pw_file)
             capturePasswords (pw_file);
@@ -320,12 +334,16 @@ static void logSys()
         // disk
         if (system ("df -h ."))
             printf ("can not run df??\n");
+#else
+        printf ("ruid %d euid %d\n", getuid(), geteuid());
+#endif
 }
 
 /* log easy OS info
  */
 static void logOS()
 {
+#ifndef _WIN32
         const char osf[] = "/etc/os-release";
         FILE *fp = fopen (osf, "r");
         if (fp) {
@@ -354,6 +372,9 @@ static void logOS()
             printf ("%s: %s\n", rpi_model, strerror(errno));
         }
     #endif
+#else
+        printf ("Windows platform\n");
+#endif
 }
 
 /* show version info
@@ -710,9 +731,16 @@ int main (int ac, char *av[])
     // save our args for restart or remote update
     our_argv = av;
 
+#ifdef _WIN32
+    // initialize Winsock before any network operations
+    hc_winsock_init();
+    // set stdout to unbuffered (Windows doesn't support fcntl F_SETFL on stdout)
+    setbuf (stdout, NULL);
+#else
     // always want stdout immediate and allow for multiple processes writing
     fcntl (1, F_SETFL, fcntl (1, F_GETFL, 0) | O_APPEND);
     setbuf (stdout, NULL);
+#endif
 
     // initialize extra defines
     initBuildVariables();

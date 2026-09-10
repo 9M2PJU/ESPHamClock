@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# 9M2PJU ESPHamClock Installer - 1-Line Docker Installer
+# 9M2PJU HamClock Installer - 1-Line Docker Installer
+# Author: 9M2PJU (https://hamradio.my)
+# Contact / Support Email: 9m2pju@hamradio.my
 # Runs HamClock in Docker with multi-resolution support & persistent storage.
 # ==============================================================================
 
@@ -14,7 +16,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}====================================================${NC}"
-echo -e "${GREEN}      9M2PJU ESPHamClock Docker Installer           ${NC}"
+echo -e "${GREEN}      9M2PJU HamClock Docker Installer           ${NC}"
 echo -e "${GREEN}         (Open HamClock - OHB Edition)              ${NC}"
 echo -e "${BLUE}====================================================${NC}"
 
@@ -45,7 +47,7 @@ else
     DOCKER_CMD="docker"
 fi
 
-IMAGE="ghcr.io/9m2pju/9m2pju-esphamclock-installer:latest"
+IMAGE="ghcr.io/9m2pju/9m2pju-hamclock-docker:latest"
 RAW_RES="${RESOLUTION:-${HAMCLOCK_RES:-$1}}"
 
 if [ -z "$RAW_RES" ]; then

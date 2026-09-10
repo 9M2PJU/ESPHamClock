@@ -1,5 +1,17 @@
 #include "WiFiUdp.h"
 
+#ifdef _WIN32
+#define hc_sock_close(fd)  closesocket(fd)
+static inline int hc_sock_write(int fd, const void *buf, int len) {
+    int r = send(fd, (const char*)buf, len, 0);
+    if (r < 0) errno = WSAGetLastError();
+    return r;
+}
+#else
+#define hc_sock_close(fd)  ::close(fd)
+#define hc_sock_write(fd, buf, len)  ::write((fd), (buf), (len))
+#endif
+
 WiFiUDP::WiFiUDP()
 {
 	sockfd = -1;
@@ -26,7 +38,11 @@ bool WiFiUDP::begin(int port)
         sin.sin_port = htons(port);
         sin.sin_addr.s_addr = htonl(INADDR_ANY);
         int one = 1;
+#ifdef _WIN32
+        (void) setsockopt (sockfd, SOL_SOCKET, SO_REUSEPORT, (const char *)&one, sizeof(one));        // too bad
+#else
         (void) setsockopt (sockfd, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one));        // too bad
+#endif
         if (bind(sockfd, (struct sockaddr*)&sin, sizeof(sin)) < 0) {
 	    printf ("UDP: bind(%d): %s\n", port, strerror(errno));
             stop();
@@ -69,7 +85,11 @@ bool WiFiUDP::beginMulticast (IPAddress ifIP, IPAddress mcIP, int port)
         struct ip_mreq mreq;
         mreq.imr_multiaddr = mcast_group.sin_addr;
         mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+#ifdef _WIN32
+        if (setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)) < 0) {
+#else
         if (setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
+#endif
 	    printf ("UDP: IP_ADD_MEMBERSHIP: %s\n", strerror(errno));
             stop();
 	    return (false);
@@ -134,7 +154,7 @@ void WiFiUDP::write (uint8_t *buf, int n)
         // init no
 	w_n = 0;
 
-	sendto_n = ::write(sockfd, buf, n);
+	sendto_n = hc_sock_write(sockfd, buf, n);
         if (sendto_n != n) {
 	    printf ("UDP: sendto(%d): only sent %d\n", n, sendto_n);
             stop();
@@ -183,7 +203,7 @@ int WiFiUDP::parsePacket()
         }
 
         socklen_t rlen = sizeof(remoteip);
-	r_n = ::recvfrom(sockfd, r_buf, sizeof(r_buf), 0, (struct sockaddr *)&remoteip, &rlen);
+	r_n = ::recvfrom(sockfd, (char *)r_buf, sizeof(r_buf), 0, (struct sockaddr *)&remoteip, &rlen);
         if (debugLevel(DEBUG_NET, 1))
             printf ("UDP: socket %d read %d\n", sockfd, r_n);
 	if (r_n < 0) {
@@ -203,7 +223,7 @@ int WiFiUDP::read(uint8_t *buf, int n)
 void WiFiUDP::stop()
 {
 	if (sockfd >= 0) {
-	    ::close (sockfd);
+	    hc_sock_close (sockfd);
             if (debugLevel(DEBUG_NET, 1))
                 printf ("UDP: closing socket %d\n", sockfd);
 	    sockfd = -1;

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# 9M2PJU ESPHamClock Universal Launcher
+# 9M2PJU HamClock Universal Launcher
+# Author: 9M2PJU (https://hamradio.my)
+# Contact / Support Email: 9m2pju@hamradio.my
 # Compatible with: Standard FHS installs, AppImage, and Standalone Folders
 # ==============================================================================
 

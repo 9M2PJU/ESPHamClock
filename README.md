@@ -1,30 +1,24 @@
-# 9M2PJU ESPHamClock Installer
+# 9M2PJU HamClock Installer
 
 <div align="center">
 
-```
-  _    _                 _____ _            _    
- | |  | |               / ____| |          | |   
- | |__| | __ _ _ __ ___| |    | | ___   ___| | __
- |  __  |/ _` | '_ ` _ \ |    | |/ _ \ / __| |/ /
- | |  | | (_| | | | | | | |___| | (_) | (__|   < 
- |_|  |_|\__,_|_| |_| |_|\____|_|\___/ \___|_|\_\
-```
-
 ### *The Quintessential Space Weather, Radio Propagation & Telemetry Dashboard for Amateur Radio*
 
-[![HamClock Version](https://img.shields.io/badge/version-4.29-blue.svg?style=for-the-badge&logo=cplusplus)](file:///home/x/ESPHamClock/version.cpp)
+[![HamClock Version](https://img.shields.io/badge/version-4.32-blue.svg?style=for-the-badge&logo=cplusplus)](file:///home/x/ESPHamClock/version.cpp)
 [![Backend Status](https://img.shields.io/badge/backend-OHB%20(Open%20HamClock%20Backend)-brightgreen.svg?style=for-the-badge&logo=server)](https://ohb.hamclock.app)
-[![AUR package](https://img.shields.io/aur/version/esphamclock-git?color=1793D1&label=AUR&logo=archlinux&style=for-the-badge)](https://aur.archlinux.org/packages/esphamclock-git)
-[![Snap Store](https://img.shields.io/badge/Snap%20Store-esphamclock-E95420.svg?style=for-the-badge&logo=snapcraft&logoColor=white)](docs/SNAP.md)
-[![Windows Support](https://img.shields.io/badge/Windows-WSL2%20%7C%20Docker-0078D6.svg?style=for-the-badge&logo=windows&logoColor=white)](docs/WINDOWS.md)
-[![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2F9m2pju%2Fesphamclock-2496ED.svg?style=for-the-badge&logo=docker&logoColor=white)](https://github.com/9M2PJU/9M2PJU-ESPHamClock-Installer/pkgs/container/esphamclock)
+[![AUR package](https://img.shields.io/aur/version/hamclock-git?color=1793D1&label=AUR&logo=archlinux&style=for-the-badge)](https://aur.archlinux.org/packages/hamclock-git)
+[![Snap Store](https://img.shields.io/badge/Snap%20Store-Stable-E95420.svg?style=for-the-badge&logo=snapcraft&logoColor=white)](https://snapcraft.io/hamclock)
+[![Windows Support](https://img.shields.io/badge/Windows-Native%20.exe%20%7C%20WSL2%20%7C%20Docker-0078D6.svg?style=for-the-badge&logo=windows&logoColor=white)](docs/WINDOWS.md)
+[![Android Support](https://img.shields.io/badge/Android-APK%20App%20%7C%20Termux-3DDC84.svg?style=for-the-badge&logo=android&logoColor=white)](docs/ANDROID.md)
+[![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2F9m2pju%2F9m2pju--hamclock--docker-2496ED.svg?style=for-the-badge&logo=docker&logoColor=white)](https://github.com/9M2PJU/9M2PJU-HamClock-Installer/pkgs/container/9m2pju-hamclock-docker)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-9M2PJU-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/9m2pju)
+[![Wise](https://img.shields.io/badge/Wise-faizulz13-163300?style=for-the-badge&logo=wise&logoColor=white)](https://wise.com/pay/me/faizulz13)
 [![License](https://img.shields.io/badge/license-Custom%20Amateur%20Radio-purple.svg?style=for-the-badge)](file:///home/x/ESPHamClock/LICENSE)
 
 <br/>
 
 <p align="center">
-  <img src="docs/images/9m2pju-esphamclock-ohb.png" alt="ESPHamClock OHB Backend Screenshot" width="850" />
+  <img src="docs/images/9m2pju-hamclock-ohb.png" alt="9M2PJU HamClock OHB Backend Screenshot" width="850" />
 </p>
 
 ---
@@ -33,6 +27,8 @@
 [OHB Migration](#-the-open-hamclock-backend-ohb-era) •
 [Features](#-feature-matrix) •
 [Quick Install](#-one-liner-quick-install) •
+[Android App](#-android-support-native-apk--termux) •
+[Windows](#-windows-support-native-exe-powershell--wsl2) •
 [Docker Setup](#-docker--docker-compose) •
 [Rotator & Radio](#-rotator--radio-cat-integration) •
 [Docs](#-documentation-library) •
@@ -53,12 +49,8 @@ As the project gained massive popularity across the global amateur radio communi
 
 With Elwood Downey becoming **Silent Key (SK)**, the original Clear Sky Institute infrastructure ceased operations. Rather than letting this indispensable amateur radio instrument fade into history, the worldwide ham radio community mobilized to keep his legacy alive.
 
-```
-       +--------------------------------------------------------------+
-       |   In Memory of Elwood Downey, WB0OEW (Silent Key - SK)       |
-       |   "His signals continue to propagate across the globe."      |
-       +--------------------------------------------------------------+
-```
+> **In Memory of Elwood Downey, WB0OEW (Silent Key - SK)**
+> *"His signals continue to propagate across the globe."*
 
 ---
 
@@ -66,7 +58,7 @@ With Elwood Downey becoming **Silent Key (SK)**, the original Clear Sky Institut
 
 To ensure HamClock remains fully functional, reliable, and open for future generations of radio operators, an international collective of amateur radio enthusiasts developed the **Open HamClock Backend (OHB)**.
 
-### What Changed in Version 4.24+ (Current: 4.29)
+### What Changed in Version 4.24+ (Current: 4.32)
 
 - **Hard-Coded Community Backend**: HamClock now connects directly to `ohb.hamclock.app:80` by default.
 - **No Switching Scripts or DNS Redirection Required**: Older transitional scripts (`sudo ohb`, `sudo fix-hosts`, `sudo csi`) and manual `/etc/hosts` modifications are no longer required.
@@ -81,12 +73,14 @@ To ensure HamClock remains fully functional, reliable, and open for future gener
 
 | Subsystem | Capabilities & Integrations |
 | :--- | :--- |
-| **☀️ Space Weather** | Live Solar Flux Index (SFI), Sunspot Number (SSN), Planetary Kp & Ap indices, X-ray solar flare flux, solar wind velocity & density, interplanetary magnetic field ($B_z$ / $B_t$), NOAA alerts, and real-time Solar Dynamics Observatory (SDO) EUV imagery. |
-| **📻 Propagation & Bands** | VOACAP point-to-point HF propagation prediction engine, real-time 80m–10m band condition matrix, Take-Off Angle (TOA) adjustments, and live synchronized NCDXF/IARU international beacon monitoring. |
-| **🗺️ Cartography & Grayline** | High-resolution Mercator, Robinson, and Azimuthal (Great Circle / beam heading) projections centered on your DE (QTH). Live day/night terminator (grayline) mapping, Maidenhead 6-character grid overlays, CQ zones, and ITU zones. |
-| **📡 DX Cluster & Digital Modes** | Live DX cluster telnet/web ingestion, PSK Reporter FT8/FT4/CW real-time spot pins on the globe, callsign DXCC prefix database lookup, and custom callsign watchlists with audio/visual alerts. |
+| **☀️ Space Weather** | Live Solar Flux Index (SFI), Sunspot Number (SSN), Planetary Kp & Ap indices, NOAA GOES-18 X-ray solar flare flux, solar wind velocity & density, interplanetary magnetic field ($B_z$ / $B_t$), NOAA alerts, and real-time Solar Dynamics Observatory (SDO) EUV imagery. |
+| **📻 Propagation & Bands** | VOACAP point-to-point HF propagation prediction engine, real-time 2200m–10m & 630m band condition matrix, Take-Off Angle (TOA) adjustments, live band activity pane, and live synchronized NCDXF/IARU international beacon monitoring. |
+| **🗺️ Cartography & Grayline** | High-resolution Mercator, Robinson, and Azimuthal (Great Circle / beam heading) projections centered on your DE (QTH). Live day/night terminator (grayline) mapping, Maidenhead 6-character grid overlays, CQ zones, ITU zones, and Country/State borders toggle badge. |
+| **📡 DX Cluster, APRS & Alerts** | Live DX cluster telnet/web ingestion (IOTA, WWBOTA, POTA, SOTA, ONTA), nearby APRS tracking, High Altitude Balloon (HAB) telemetry, HamAlert.org integration, PSK Reporter FT8/FT4/CW real-time spot pins, and custom callsign watchlists with audio/visual alerts. |
+| **🚨 Emergency & Environmental** | Real-time global active wildfire mapping, Fire Weather (FireWx) warnings, NWS Marine Warnings, live USGS Earthquake tracking, and Weather Fax (WeFax) charts. |
 | **🛰️ Satellites, EME & Rotators** | Orbit calculation via Plan-13 algorithm for ISS and amateur satellites, next pass predictions, Doppler shift estimation, Earth-Moon-Earth (EME) mutual visibility windows, and automated Az/El antenna rotor/gimbal control (rotctld, Yaesu, Easycomm). |
 | **📜 Logbook & Rig Control** | Real-time ADIF log ingestion from WSJT-X, N1MM Logger+, and standard loggers; on-air QSO pins plotted live; Flrig and rigctld CAT transceiver tracking. |
+| **⌨️ Touch & UI Usability** | On-screen modal virtual keyboard for editing station settings, callsigns, and Wi-Fi on touchscreens; QR code modal generation for quick RSS news reading and local Wi-Fi sharing. |
 | **⏱️ Clocks & Geolocation** | Dual DE/DX local timezones, UTC precision display, sub-second NTP synchronization, hardware NMEA GPS & `gpsd` daemon support, IP geolocation, and stopwatch/timer controls. |
 | **🌐 Built-in Web Server** | Interactive WebSocket remote mirror (port `8081`) for touch/click browser control, read-only monitor (port `8082`), and RESTful HTTP API (port `8080`) for screenshots and automation. |
 
@@ -96,41 +90,144 @@ To ensure HamClock remains fully functional, reliable, and open for future gener
 
 ## ⚡ One-Liner Quick Install
 
-Use the universal automated installation script to install build dependencies, compile the optimized binary for your hardware, and create application menu shortcuts:
+Use the universal automated installation script to install build dependencies, compile the optimized binary for your hardware, create application menu shortcuts, and optionally configure auto-start on login:
 
 ### Linux / Raspberry Pi / Inovato Quadra / Ubuntu / Debian / Arch / Fedora
 ```bash
-curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-ESPHamClock-Installer/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | bash
 ```
 
 ### macOS (Apple Silicon & Intel)
 > *Requires [Homebrew](https://brew.sh/) and [XQuartz](https://www.xquartz.org/).*
 ```bash
-curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-ESPHamClock-Installer/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | bash
+```
+
+### Android (Official Native App - APK) ⭐
+> *100% Native Embedded C++ Engine — No Termux or root required.*
+Download the latest APK directly from [GitHub Releases](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases):
+- [📥 **Download Universal APK (`9M2PJU-HamClock.apk`)**](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases/latest)
+
+### Android (Termux CLI)
+> *Turns any Android phone or tablet into a dedicated, low-power (<3W) touch clock via Termux.*
+```bash
+pkg update -y && pkg install -y curl && bash -c "$(curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/termux/install.sh)"
 ```
 
 ### FreeBSD
 ```bash
-curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-ESPHamClock-Installer/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | bash
 ```
 
 ### Local Execution
 ```bash
-git clone https://github.com/9M2PJU/9M2PJU-ESPHamClock-Installer.git
-cd 9M2PJU-ESPHamClock-Installer
+git clone https://github.com/9M2PJU/9M2PJU-HamClock-Installer.git
+cd 9M2PJU-HamClock-Installer
 ./install.sh
 ```
 
 ---
 
+### 🔁 Auto-Start on Login
+
+The installer asks whether to auto-start HamClock on login. The available options depend on your OS:
+
+| OS | Auto-Start Methods |
+| :--- | :--- |
+| **Linux** | XDG autostart (`~/.config/autostart/hamclock.desktop`), systemd user service (`~/.config/systemd/user/hamclock.service`) |
+| **macOS** | launchd LaunchAgent (`~/Library/LaunchAgents/local.hamclock.plist`) |
+| **FreeBSD** | XDG autostart (`~/.config/autostart/hamclock.desktop`), `~/.xinitrc` (for `startx` sessions) |
+| **Android (Termux)** | Use [Termux:Boot](https://wiki.termux.com/wiki/Termux:Boot); see [Android & Termux Guide](docs/ANDROID.md) |
+
+#### Non-Interactive Auto-Start Selection
+
+Skip the prompt by setting the `AUTOSTART` environment variable. Note: the variable must be set for `bash` (the right side of the pipe), not `curl`:
+
+```bash
+# Linux: XDG autostart
+curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | AUTOSTART=xdg bash
+
+# Linux: systemd user service
+curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | AUTOSTART=systemd bash
+
+# macOS: launchd LaunchAgent
+curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | AUTOSTART=launchd bash
+
+# FreeBSD: ~/.xinitrc
+curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | AUTOSTART=xinitrc bash
+
+# Disable auto-start (default)
+curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | AUTOSTART=none bash
+```
+
+You can combine with target/resolution selection:
+```bash
+curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | TARGET=1600x960 AUTOSTART=xdg bash
+```
+
+#### Removing Auto-Start
+
+```bash
+# Linux (XDG)
+rm -f ~/.config/autostart/hamclock.desktop
+
+# Linux (systemd)
+systemctl --user disable --now hamclock.service
+rm -f ~/.config/systemd/user/hamclock.service
+systemctl --user daemon-reload
+
+# macOS (launchd)
+launchctl unload ~/Library/LaunchAgents/local.hamclock.plist
+rm -f ~/Library/LaunchAgents/local.hamclock.plist
+
+# FreeBSD (~/.xinitrc)
+# Edit ~/.xinitrc and remove the HamClock line manually
+```
+
+---
+
+### ▶️ Running HamClock
+
+After installation, start HamClock by running:
+
+```bash
+hamclock
+```
+
+If the `hamclock` command is not found, run `hash -r` or open a new terminal, then try again. You can also launch a specific resolution directly (if installed via package manager):
+
+```bash
+hamclock -r 1600x960      # Recommended for 1080p monitors
+hamclock -r 2400x1440     # 2K displays
+hamclock -r 3200x1920     # 4K displays
+hamclock -r 800x480       # Small touchscreens
+```
+
+For headless / web-only builds, access the web UI at `http://localhost:8081/live.html`.
+
+---
+
+### 🐛 Support & Reporting Issues
+
+If you encounter any problems, bugs, or have feature requests, please [open an issue on GitHub](https://github.com/9M2PJU/9M2PJU-HamClock-Installer/issues):
+
+```
+https://github.com/9M2PJU/9M2PJU-HamClock-Installer/issues
+```
+
+Please include your OS, architecture, the install command you ran, and any error output. 73!
+
+---
+
 ## 📦 Pre-Built Linux Packages (.deb, .rpm, .AppImage)
 
-For instant installation without compiling from source, pre-built binary packages are available directly from [GitHub Releases](https://github.com/9M2PJU/9M2PJU-ESPHamClock-Installer/releases) for **amd64**, **arm64**, and **armhf**:
+For instant installation without compiling from source, pre-built binary packages are available directly from [GitHub Releases](https://github.com/9M2PJU/9M2PJU-HamClock-Installer/releases) for **amd64**, **arm64**, and **armhf**:
 
 <div align="center">
 
 | Package Format | Target Operating Systems | Supported Architectures |
 | :--- | :--- | :--- |
+| **`Android (.apk)`** | Android Phones, Tablets, Android TV Boxes (Android 5.0+) | Universal, `arm64-v8a`, `armeabi-v7a`, `x86_64`, `x86` |
 | **`AUR`** | Arch Linux, Manjaro, EndeavourOS, CachyOS | `x86_64`, `aarch64`, `armv7h` |
 | **`Snap`** | Ubuntu, Debian, Fedora, Arch Linux, Manjaro, openSUSE | `amd64`, `arm64`, `armhf` |
 | **`.deb`** | Debian, Ubuntu, Raspberry Pi OS, Armbian, Linux Mint | `amd64`, `arm64`, `armhf` |
@@ -140,56 +237,142 @@ For instant installation without compiling from source, pre-built binary package
 </div>
 
 ### 📦 Snap Store (Ubuntu / Universal Linux)
-```bash
-sudo snap install esphamclock
-```
+> ```bash
+> sudo snap install hamclock
+> ```
+>
+> Track build: [GitHub Actions — Snap Build](https://github.com/9M2PJU/9M2PJU-HamClock-Installer/actions/workflows/snap.yml)
 
 ### 🏹 Arch Linux (AUR)
 ```bash
 # Using yay
-yay -S esphamclock-git
+yay -S hamclock-git
 
 # Using paru
-paru -S esphamclock-git
+paru -S hamclock-git
 ```
 
 ### 🐧 Debian / Ubuntu / Raspberry Pi OS (`.deb`)
 ```bash
 # Download and install for your architecture
-sudo dpkg -i esphamclock_4.29-1_amd64.deb    # x86_64 PCs
-sudo dpkg -i esphamclock_4.29-1_arm64.deb    # Raspberry Pi 4/5 / 64-bit ARM
-sudo dpkg -i esphamclock_4.29-1_armhf.deb    # Raspberry Pi 2/3 / 32-bit Raspbian
-sudo apt-get install -f                      # Resolve any missing dependencies
+sudo dpkg -i hamclock_4.32-1_amd64.deb    # x86_64 PCs
+sudo dpkg -i hamclock_4.32-1_arm64.deb    # Raspberry Pi 4/5 / 64-bit ARM
+sudo dpkg -i hamclock_4.32-1_armhf.deb    # Raspberry Pi 2/3 / 32-bit Raspbian
+sudo apt-get install -f                   # Resolve any missing dependencies
 ```
 
 ### 🎩 Fedora / RHEL / openSUSE (`.rpm`)
 ```bash
-sudo rpm -Uvh esphamclock-4.29-1.x86_64.rpm  # x86_64
-sudo rpm -Uvh esphamclock-4.29-1.aarch64.rpm # ARM64
+sudo rpm -Uvh hamclock-4.32-1.x86_64.rpm  # x86_64
+sudo rpm -Uvh hamclock-4.32-1.aarch64.rpm # ARM64
 ```
 
 ### 🚀 Universal AppImage (Single-File Executable)
 ```bash
-chmod +x ESPHamClock-4.29-x86_64.AppImage
-./ESPHamClock-4.29-x86_64.AppImage
+chmod +x HamClock-4.32-x86_64.AppImage
+./HamClock-4.32-x86_64.AppImage
 
 # Launch with custom resolution
-./ESPHamClock-4.29-x86_64.AppImage -r 1600x960
+./HamClock-4.32-x86_64.AppImage -r 1600x960
 ```
 
 ---
 
-## 🪟 Windows Support (PowerShell & WSL2)
+## 🪟 Windows Support (Native .exe, PowerShell & WSL2)
 
-Run HamClock on **Windows 10 & Windows 11** via automated PowerShell installer:
+HamClock now builds as a **native Windows `.exe`** - no WSL, Docker, or X11 required. The executable runs a headless web server; you view the dashboard in any browser at `http://localhost:8081/live.html`.
+
+### Option A: Download Pre-Built .exe from GitHub Releases
+
+Download the latest `mingw-web-*.exe` from the [GitHub Releases page](https://github.com/9M2PJU/9M2PJU-HamClock-Installer/releases). Four resolutions are available:
+
+| File | Resolution | Use Case |
+| :--- | :--- | :--- |
+| `mingw-web-800x480.exe` | 800 x 480 | Standard, smaller displays |
+| `mingw-web-1600x960.exe` | 1600 x 960 | Large, recommended default |
+| `mingw-web-2400x1440.exe` | 2400 x 1440 | Hi-DPI |
+| `mingw-web-3200x1920.exe` | 3200 x 1920 | 4K UHD |
+
+Run the `.exe` from Command Prompt or PowerShell, then open `http://localhost:8081/live.html` in any browser. No installation required - the executable is statically linked and only depends on Windows system DLLs.
+
+### Option B: Build from Source (MinGW-w64 Cross-Compile)
+
+Build from Linux using MinGW-w64:
+
+```bash
+# Install MinGW-w64 toolchain
+# Arch:   sudo pacman -S mingw-w64-gcc
+# Debian: sudo apt install g++-mingw-w64-x86-64
+
+# Build all four resolution variants:
+make mingw-all-web
+
+# Or build a single resolution:
+make mingw-web-800x480
+```
+
+Copy the resulting `mingw-web-*.exe` to your Windows machine and run it.
+
+### Option C: PowerShell Installer (WSL2 or Docker)
 
 ```powershell
-irm https://raw.githubusercontent.com/9M2PJU/9M2PJU-ESPHamClock-Installer/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/scripts/install.ps1 | iex
 ```
 
 - **WSL2 / WSLg**: Runs as a seamless, hardware-accelerated native desktop window.
 - **Docker Desktop**: Deploys the isolated headless container and opens `http://localhost:8081/live.html`.
 - For detailed instructions, see the [Windows User Guide](docs/WINDOWS.md).
+
+---
+
+## 📱 Android Support (Native APK & Termux)
+
+Turn spare Android tablets, phones, or TV boxes into permanent, low-power (<3W) **shack touch clocks** with two installation methods:
+
+<p align="center">
+  <img src="docs/images/9m2pju-hamclock-android.jpg" alt="HamClock running on Android Phone using Termux with Fully Kiosk Browser" width="700" />
+</p>
+
+### Option A: Official Standalone Android App (.apk) [Recommended] ⭐
+
+The official standalone Android APK runs a 100% native embedded C++ engine directly on Android. No Termux, root, or Linux chroot needed!
+
+- **🚀 100% Native Embedded C++ Engine**: Runs the full HamClock backend natively.
+- **📍 GPS & Maidenhead Locator Sync**: Auto GPS coordinates acquisition & real-time station DE grid locator sync.
+- **📦 Config Backup & Restore (SAF)**: One-tap export/import of station EEPROM, presets, and preferences via ZIP & Share Sheet.
+- **🌙 OLED Burn-in Care & Night Dimmer**: Pixel-shift anti-burn-in protection and auto nighttime dimming schedule (10PM–6AM).
+- **📺 Android TV & Car Ready**: Full D-Pad remote navigation support and automatic USB charger power wake/sleep.
+- **📱 Edge-to-Edge Fullscreen Display**: Hardware-accelerated UI with responsive multi-touch.
+- **🔋 24/7 Background Foreground Service**: Built-in WakeLock/WifiLock support to prevent sleep.
+- **🌐 Multi-Device LAN Streaming**: View and control HamClock over WiFi at `http://<PHONE-IP>:8081/live.html`.
+- **🇲🇾 Bahasa Melayu Localization**: Native Malaysian Malay language translations.
+- **🔄 Auto-Start on Boot**: Toggle in settings for dedicated tablet monitors.
+
+📥 **Download Packages from [GitHub Releases](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases):**
+- [📥 **Download Universal APK (`9M2PJU-HamClock.apk`)**](https://github.com/9M2PJU/9M2PJU-HamClock-Android-Releases/releases/latest) *(Recommended — Universal for all devices)*
+- **Architecture-Specific APKs:** `arm64-v8a` (64-bit ARM), `armeabi-v7a` (32-bit ARM), `x86_64`, `x86`
+
+---
+
+### Option B: Android via Termux CLI (DIY)
+
+```bash
+pkg update -y && pkg install -y curl && bash -c "$(curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/termux/install.sh)"
+```
+
+#### Quick Non-Interactive Target Selection:
+```bash
+# 1600x960 (Recommended for Tablets & 1080p Screens)
+TARGET=1600x960 bash -c "$(curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/termux/install.sh)"
+
+# 800x480 (Recommended for Phones & Compact Screens)
+TARGET=800x480 bash -c "$(curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/termux/install.sh)"
+```
+
+#### Full-Screen & 24/7 Shack Operation:
+1. **Background Running & Battery Saver**: Run `termux-wake-lock && hamclock -k &` and set Android **Settings ➔ Apps ➔ Termux ➔ Battery ➔ Unrestricted** (disable Battery Saver so Android does not suspend HamClock).
+2. **Best Full-Screen & Auto-Fit View**: Install [**Fully Kiosk Browser**](https://play.google.com/store/apps/details?id=de.ozerov.fully&hl=en) from Google Play and set Start URL to `http://localhost:8081/live.html`.
+3. For detailed kiosk settings, autostart on boot, and native X11 guides, see the [Android & Termux Guide](docs/ANDROID.md).
 
 ---
 
@@ -207,12 +390,12 @@ Multi-architecture images are built automatically via **GitHub Actions** and hos
 Run this single command to pull the multi-arch container, select your resolution, and start HamClock:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-ESPHamClock-Installer/main/install-docker.sh | bash
+curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install-docker.sh | bash
 ```
 
 Or pass your desired resolution directly:
 ```bash
-RESOLUTION=1600x960 curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-ESPHamClock-Installer/main/install-docker.sh | bash
+RESOLUTION=1600x960 curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install-docker.sh | bash
 ```
 
 ---
@@ -223,7 +406,7 @@ RESOLUTION=1600x960 curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-E
    ```yaml
    services:
      hamclock:
-       image: ghcr.io/9m2pju/9m2pju-esphamclock-installer:latest
+       image: ghcr.io/9m2pju/9m2pju-hamclock-docker:latest
        container_name: hamclock
        restart: unless-stopped
        ports:
@@ -260,7 +443,7 @@ docker run -d \
   -p 8082:8082 \
   -e RESOLUTION=1600x960 \
   -v hamclock_data:/home/hamclock/.hamclock \
-  ghcr.io/9m2pju/esphamclock:latest
+  ghcr.io/9m2pju/9m2pju-hamclock-docker:latest
 ```
 
 ---
@@ -291,6 +474,42 @@ All four resolutions are **pre-compiled** inside the Docker image. You can switc
 
 ---
 
+### How Resolution Works in Package Managers (AUR `yay`, `.deb`, `.rpm`, Snap, AppImage)
+
+> [!NOTE]
+> **Why doesn't `yay` / `pacman` / `apt` ask for screen resolution during installation?**
+> Standard Linux package managers require **non-interactive, unattended builds** so automated system updates (`yay -Syu`) never hang waiting for user prompts.
+> 
+> Therefore, package managers build and install **all 6 resolutions simultaneously** into `/usr/lib/hamclock/`. You choose or change your resolution at **runtime** using the universal launcher:
+
+1. **Launch a specific resolution on demand:**
+   ```bash
+   hamclock -r 1600x960     # Recommended for 1080p Desktop Monitors
+   hamclock -r 2400x1440    # 2K Quad HD
+   hamclock -r 3200x1920    # 4K Ultra HD
+   hamclock -r 800x480      # Standard Definition / Touchscreens
+   ```
+
+2. **Or use direct binary symlinks:**
+   ```bash
+   hamclock-1600x960
+   hamclock-800x480
+   ```
+
+3. **Set a permanent default resolution in your shell:**
+   Add to `~/.bashrc` or `~/.profile`:
+   ```bash
+   export HAMCLOCK_RES=1600x960
+   ```
+   Then running `hamclock` will always open in `1600x960` automatically.
+
+4. **List all available resolutions:**
+   ```bash
+   hamclock --list-resolutions
+   ```
+
+---
+
 ### How to Change Resolution with One-Liner Script (`install.sh`)
 
 #### Method 1: Interactive Menu
@@ -304,16 +523,16 @@ Pass `TARGET` or resolution directly into the command:
 
 ```bash
 # Desktop X11 1600x960 (Large)
-TARGET=1600x960 curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-ESPHamClock-Installer/main/install.sh | bash
+TARGET=1600x960 curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | bash
 
 # Desktop X11 2400x1440 (2K Hi-DPI)
-TARGET=2400x1440 curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-ESPHamClock-Installer/main/install.sh | bash
+TARGET=2400x1440 curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | bash
 
 # Web Server Only 1600x960 (Headless)
-TARGET=web-1600x960 curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-ESPHamClock-Installer/main/install.sh | bash
+TARGET=web-1600x960 curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | bash
 
 # Raspberry Pi Direct Framebuffer 800x480 (/dev/fb0)
-TARGET=fb0-800x480 curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-ESPHamClock-Installer/main/install.sh | bash
+TARGET=fb0-800x480 curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | bash
 ```
 
 ---
@@ -342,6 +561,9 @@ Explore comprehensive guides and documentation in the [`docs/`](docs/) directory
 | Guide | Description |
 | :--- | :--- |
 | 📖 [**Installation Guide**](docs/INSTALLATION.md) | Step-by-step installation for Linux, Raspberry Pi, Inovato Quadra, macOS, FreeBSD, and Docker. |
+| 📱 [**Android & Termux Guide**](docs/ANDROID.md) | Turn Android phones & tablets into dedicated, low-power shack touch clocks. |
+| 🪟 [**Windows Setup Guide**](docs/WINDOWS.md) | Setup on Windows 10 & 11 via PowerShell, WSL2/WSLg, and Docker Desktop. |
+| 📦 [**Snap Store Guide**](docs/SNAP.md) | Canonical Snap package maintainer and user deployment guide. |
 | 📻 [**Rotator & Radio CAT Guide**](docs/ROTATOR_AND_RADIO.md) | Setup and usage for `rotctld`, `rigctld`, `flrig`, satellite tracking, and click-to-tune QSY. |
 | ⚙️ [**Configuration & Settings**](docs/CONFIGURATION_AND_SETTINGS.md) | Guide to all setup pages, station coordinates, map layers, DX clusters, and ADIF loggers. |
 | 💡 [**Usage, Tips & CLI Reference**](docs/USAGE_AND_TIPS.md) | Touch gestures, mouse controls, keyboard shortcuts, command line options, and REST APIs. |
@@ -385,14 +607,16 @@ sudo pkg install -y gmake gcc libX11 libgpio curl unzip
 
 ### 2. Choose Build Target & Resolution
 
-HamClock provides three output architectures across four resolutions:
+HamClock provides three output architectures across four resolutions, plus a native Windows cross-compile target:
 
-| Target Resolution | X11 Desktop GUI | Headless Web Server Only | RPi Direct Framebuffer (`/dev/fb0`) |
-| :--- | :--- | :--- | :--- |
-| **800 × 480** *(Standard)* | `make hamclock-800x480` | `make hamclock-web-800x480` | `make hamclock-fb0-800x480` |
-| **1600 × 960** *(Large)* | `make hamclock-1600x960` | `make hamclock-web-1600x960` | `make hamclock-fb0-1600x960` |
-| **2400 × 1440** *(Hi-DPI)* | `make hamclock-2400x1440` | `make hamclock-web-2400x1440` | `make hamclock-fb0-2400x1440` |
-| **3200 × 1920** *(4K UHD)* | `make hamclock-3200x1920` | `make hamclock-web-3200x1920` | `make hamclock-fb0-3200x1920` |
+| Target Resolution | X11 Desktop GUI | Headless Web Server Only | RPi Direct Framebuffer (`/dev/fb0`) | Native Windows `.exe` (MinGW) |
+| :--- | :--- | :--- | :--- | :--- |
+| **800 × 480** *(Standard)* | `make hamclock-800x480` | `make hamclock-web-800x480` | `make hamclock-fb0-800x480` | `make mingw-web-800x480` |
+| **1600 × 960** *(Large)* | `make hamclock-1600x960` | `make hamclock-web-1600x960` | `make hamclock-fb0-1600x960` | `make mingw-web-1600x960` |
+| **2400 × 1440** *(Hi-DPI)* | `make hamclock-2400x1440` | `make hamclock-web-2400x1440` | `make hamclock-fb0-2400x1440` | `make mingw-web-2400x1440` |
+| **3200 × 1920** *(4K UHD)* | `make hamclock-3200x1920` | `make hamclock-web-3200x1920` | `make hamclock-fb0-3200x1920` | `make mingw-web-3200x1920` |
+
+> **Windows cross-compile** requires the MinGW-w64 toolchain (`mingw-w64-gcc` on Arch, `g++-mingw-w64-x86-64` on Debian/Ubuntu). The resulting `.exe` is a statically linked PE32+ executable that runs the web-only backend natively on Windows 10/11 without WSL or Docker. See [docs/WINDOWS.md](docs/WINDOWS.md) for details.
 
 #### Build Example (800x480 Desktop GUI)
 ```bash
@@ -477,25 +701,18 @@ sudo systemctl status hamclock
 
 ## 📂 Repository Layout
 
-```text
-9M2PJU-ESPHamClock-Installer/
-├── src/                          # C++ implementation source files
-│   ├── ESPHamClock.cpp           # Main application entry point
-│   ├── astro.cpp, clocks.cpp...  # Core telemetry & map engines
-│   ├── gimbal.cpp, radio.cpp...  # Rotator and CAT radio controllers
-│   └── liveweb.cpp, wifi.cpp...  # Embedded WebSocket & REST servers
-├── include/                      # C++ header files & global definitions
-├── ArduinoLib/                   # POSIX / Linux Arduino hardware abstraction
-├── wsServer/                     # Real-time WebSocket server library
-├── zlib-hc/                      # Embedded data decompression library
-├── packaging/                    # .deb, .rpm, and AppImage package builders
-├── deploy/                       # Linux desktop launchers, icons, systemd units
-├── docker/                       # Dockerfile, entrypoint, and compose configs
-├── scripts/                      # Native & Docker automated 1-line installers
-├── docs/                         # Comprehensive documentation library & GitHub Pages
-├── Makefile                      # Standard POSIX build system
-└── README.md
-```
+- `src/` - C++ implementation source files (main entry point, telemetry, map engines, rotator and CAT radio controllers, WebSocket and REST servers)
+- `include/` - C++ header files and global definitions
+- `ArduinoLib/` - POSIX / Linux Arduino hardware abstraction
+- `wsServer/` - Real-time WebSocket server library
+- `zlib-hc/` - Embedded data decompression library
+- `packaging/` - .deb, .rpm, and AppImage package builders
+- `deploy/` - Linux desktop launchers, icons, systemd units
+- `docker/` - Dockerfile, entrypoint, and compose configs
+- `scripts/` - Native and Docker automated 1-line installers
+- `termux/` - Dedicated Android Termux installer and build helpers
+- `docs/` - Comprehensive documentation library and GitHub Pages
+- `Makefile` - Standard POSIX build system
 
 ---
 
@@ -522,6 +739,30 @@ Contributions, bug fixes, and feature enhancements are welcome!
 
 ---
 
+## 💖 Sponsor & Support
+
+If you find this installer, packaging suite, and the Open HamClock Backend useful for your amateur radio shack, please consider supporting ongoing maintenance and development:
+
+<div align="center">
+
+<p align="center">
+  <img src="docs/images/9m2pju-donation-qr.png" alt="DuitNow / Touch 'n Go QR Donation - 9M2PJU" width="220" />
+  <br/>
+  <sub><b>🇲🇾 DuitNow / Touch 'n Go (TNG) QR</b> (Scan with any Malaysian Banking / eWallet App)</sub>
+</p>
+
+<a href="https://buymeacoffee.com/9m2pju" target="_blank"><img src="https://img.shields.io/badge/Buy_Me_a_Coffee-9M2PJU-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee" /></a>
+&nbsp;&nbsp;
+<a href="https://wise.com/pay/me/faizulz13" target="_blank"><img src="https://img.shields.io/badge/Wise-faizulz13-163300?style=for-the-badge&logo=wise&logoColor=white" alt="Wise" /></a>
+
+<br/><br/>
+
+Your sponsorship helps cover server costs for the **Open HamClock Backend (OHB)** and ongoing packaging maintenance. Thank you for your support! 73 de 9M2PJU.
+
+</div>
+
+---
+
 ## 📄 License & Acknowledgments
 
 - **Original Creator**: Elwood Downey, WB0OEW (Clear Sky Institute).
@@ -530,8 +771,6 @@ Contributions, bug fixes, and feature enhancements are welcome!
 
 <div align="center">
 
-```
-73 to all Radio Amateurs worldwide! de 9M2PJU
-```
+*73 to all Radio Amateurs worldwide! de 9M2PJU*
 
 </div>

@@ -1,0 +1,11 @@
+--- a/wsServer/src/ws.cpp
++++ b/wsServer/src/ws.cpp
+@@ -1420,7 +1420,7 @@ static void *ws_establish_client(void *vclient)
+                 (*cli_events.onnonws) (sockfp, client->header);
+                 /* want shutdown() first, then more closes are harmless */
+                 fflush(sockfp);
+-                close_socket(client->client_sock);
++                shutdown(client->client_sock, SHUT_RDWR);
+                 fclose (sockfp);
+             }
+             goto closed;

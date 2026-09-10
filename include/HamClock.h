@@ -21,7 +21,11 @@
 #include <math.h>
 #include <signal.h>
 #include <dirent.h>
+#ifdef _WIN32
+#include "win32_compat.h"
+#else
 #include <sys/file.h>
+#endif
 
 
 #include "ArduinoLib.h"
@@ -381,7 +385,24 @@ typedef enum {
     // N.B. appended so existing bit-mask/table indices for prior entries remain unchanged
     BORDERS_CSPR,
     STATES_CSPR,
-    N_CSPR
+    N_CSPR,                  // csel_pr[] in setup.cpp is sized to exactly this many editable colors
+
+    // 630m, 4m, 2200m and 23cm are deliberately declared AFTER N_CSPR, not folded into the editable
+    // csel_pr[] table above it: the Color Editor's page 6 is already exactly full (12 tightly-packed
+    // rows, no spare vertical room on real hardware -- confirmed, not just a layout guess), so
+    // there's no row to give any of them. Rather than reflow that whole page, each gets a single
+    // hardcoded color that isn't user-editable. Because their values are >= N_CSPR, they must NEVER
+    // be used to index csel_pr[N_CSPR] directly (that's one past the end of the array) -- every
+    // function that reads a ColorSelection by indexing csel_pr[] (getMapColor, getMapColorThin,
+    // getMapColorName, getRawPathWidth, getRawSpotRadius, getPathDashed) has an explicit early check
+    // for each of these values before it ever touches csel_pr[]. findColSel(HAMBAND_630M/_4M/
+    // _2200M/_23CM) returns the corresponding value, and spot/path drawing code calls those
+    // functions with it via findColSel() just like every other band, so this guard has to be
+    // airtight, not best-effort.
+    BAND630_CSPR,
+    BAND4_CSPR,
+    BAND2200_CSPR,
+    BAND23CM_CSPR
 } ColorSelection;
 
 
@@ -428,7 +449,15 @@ typedef enum {
 
 #define PLOTNAMES_HIGH \
     X(PLOT_CH_SATACT,       "Sat_Alerts")        \
-    X(PLOT_CH_MESHTASTIC,   "Mesh_Mon")
+    X(PLOT_CH_MESHTASTIC,   "Mesh_Mon")          \
+    X(PLOT_CH_ECLIPSE,      "Eclipse")           \
+    X(PLOT_CH_APRSCLUSTER,  "Nearby_APRS")       \
+    X(PLOT_CH_BALLOONS,     "Balloons")          \
+    X(PLOT_CH_HAMALERT,     "HamAlert")          \
+    X(PLOT_CH_BANDACT,      "Band_Act")          \
+    X(PLOT_CH_MARINE,       "Marine_Wx")         \
+    X(PLOT_CH_FIREWX,       "Fire_Wx")           \
+    X(PLOT_CH_QUAKES,       "Quakes")
 
 #define PLOTNAMES PLOTNAMES_LOW PLOTNAMES_HIGH
 
@@ -553,12 +582,17 @@ typedef struct {
 #define NV_ONAIR_LEN            30      // max ONAIR text, including EOS
 #define NV_TITLE_LEN            70      // max alternate callsign, including EOS
 
+// title field may contain up to this many ';'-separated entries that rotate in turn.
+// N.B. kept within the existing NV_TITLE_LEN budget so NVRAM/EEPROM layout, and thus
+// compatibility with previously-saved settings, is unaffected.
+#define MAX_TITLE_ENTRIES        6
+
 
 // manage callsign display area and alternate uses
 typedef enum {
     CT_CALL,                            // display real call
     CT_TITLE,                           // display title text
-    CT_BOTH,                            // alternate between call and title
+    CT_BOTH,                            // alternate among call and each title entry
     CT_ONAIR,                           // display ON AIR message
 } Call_t;
 typedef struct {
@@ -568,7 +602,11 @@ typedef struct {
 typedef struct {
     char call[NV_CALLSIGN_LEN];         // real callsign for CT_CALL, used by setup.cpp
     char onair[NV_ONAIR_LEN];           // real on-air message for CT_ONAIR, used by setup.cpp
-    char title[NV_TITLE_LEN];           // CT_TITLE text if used
+    char title[NV_TITLE_LEN];           // CT_TITLE text as stored/edited, ';'-separated entries
+    char title_parsed[NV_TITLE_LEN];    // working copy of title with ';' -> '\0' for tokenizing
+    char *title_list[MAX_TITLE_ENTRIES];// pointers into title_parsed, one per entry
+    int n_titles;                       // number of valid entries in title_list, may be 0
+    int title_idx;                      // index into title_list currently shown for CT_TITLE
     Call_t ct_prefer;                   // CT_CALL CT_TITLE or CT_BOTH set via menu
     Call_t now_showing;                 // displaying CT_CALL CT_TITLE or CT_ONAIR
     time_t next_update;                 // when to rotate if ct_prefer is CT_BOTH
@@ -617,10 +655,51 @@ extern uint8_t names_on;                // show place names when roving
 extern uint8_t borders_on;              // show country/state borders overlay on Clouds/Terrain
 extern SBox borders_btn_b;              // on-map "Borders On/Off" badge, next to the View button
 extern bool bordersBadgeVisible(void);  // whether that badge should currently be shown
+
+/*********************************************************************************************
+ *
+ * wefax.cpp
+ *
+ */
+
+extern uint8_t wefax_on;                // whether the viewer is currently open; runtime only, not NV
+extern SBox wefax_btn_b;                // on-map "WEFAX On/Off" badge, shares the Borders badge's slot
+extern bool wefaxBadgeVisible(void);    // whether that badge should currently be shown -- CM_WX only
+extern void drawWefaxButton(void);      // draw (or blank) the badge
+extern void initWefax(void);            // restore NV state at startup
+extern void runWefaxViewer(void);       // take over map_b showing the chart, until the user leaves
 extern void initCountryBorders(void);   // one-time fetch/load, call once at startup
 extern void updateCountryBorders(void); // reproject cached data to current pan/zoom/projection
 extern void drawCountryBorders(void);   // draw from the cached, already-projected data
 extern uint8_t lightning_on;            // show lightning strikes overlay
+
+/*********************************************************************************************
+ *
+ * fires.cpp
+ *
+ */
+
+extern uint8_t fires_on;                // show active-fire hotspot overlay
+extern SBox fires_btn_b;                // on-map "Fires On/Off" badge; slot floats right of
+                                         // whichever of View/Borders is currently rightmost
+extern bool firesBadgeVisible(void);    // whether that badge should currently be shown --
+                                         // Countries/Terrain/Clouds + Mercator only
+extern void drawFiresButton(void);      // draw (or blank) the badge
+extern void initFires(void);            // restore NV state at startup
+extern void updateFires(void);          // fetch from OHB if due; call from updateWiFi()
+extern void drawFiresOnMap(void);       // render flame glyphs; call from drawAllSymbols()
+
+extern SBox adsbmap_btn_b;              // on-map "ADS-B" badge; slot floats right of whichever
+                                         // of View/Borders/Fires is currently rightmost
+extern bool adsbBadgeVisible(void);     // whether that badge should currently be shown -- Clouds
+                                         // + Mercator/Robinson only
+extern void drawADSBBadge(void);        // draw (or blank) the badge
+extern void adsbBadgeClicked(void);     // open ADS-B Exchange (or PiAware) centered on DE
+
+extern SBox windmap_btn_b;              // on-map "Wind" badge; slot floats right of WEFAX, or View
+extern bool windBadgeVisible(void);     // whether that badge should currently be shown -- CM_WX only
+extern void drawWindButton(void);       // draw (or blank) the badge
+extern void windBadgeClicked(void);     // open Windy.com centered on DE
 
 extern SBox desrss_b, dxsrss_b;         // sun rise/set display
 extern uint8_t desrss, dxsrss;          // sun rise/set chpice
@@ -702,8 +781,7 @@ extern SBox map_b;                      // main map
 extern SBox view_btn_b;                 // map view menu button
 
 extern SBox motd_btn_b;                 // MOTD mailbox icon (next to UTC button)
-extern SBox adsb_btn_b;                 // ADS-B airplane icon (next to MOTD icon)
-extern SBox windy_btn_b;                // Windy.com wind icon (next to ADS-B icon)
+extern SBox userguide_btn_b;            // User Guide book icon (below MOTD icon)
 
 // MOTD (Message of the Day) functions
 extern void checkMOTD (void);
@@ -711,11 +789,10 @@ extern bool motdIsPresent (void);
 extern void drawMOTDIcon (void);
 extern void motdClicked (void);
 
-// ADS-B airplane icon -- opens https://adsb.lol
-extern void drawADSBIcon (void);
+// User Guide functions
+extern void drawUserGuideIcon (void);
+extern bool checkUserGuideTouch (SCoord &s);
 
-// Windy.com wind icon -- opens https://www.windy.com
-extern void drawWindyIcon (void);
 extern SBox dx_maid_b;                  // dx maidenhead pick
 extern SBox de_maid_b;                  // de maidenhead pick
 extern SBox lkscrn_b;                   // screen lock icon button
@@ -799,6 +876,12 @@ typedef struct {
     float kHz;                          // freq
     float snr;                          // only used by pskreporter.cpp
     time_t spotted;                     // UTC when spotted
+    char iota[8];                       // IOTA group ref found in comment, eg "EU-005"; else empty
+    char xota_org[8];                   // "extra" xOTA program found in comment -- one of
+                                         // WCA/ARLHS/ILLW/SIOTA/WAB/WWBOTA; else empty. See xota.h --
+                                         // unlike iota[], these have no reference->name database at
+                                         // all, so this is the whole story: no matching xota_name().
+    char xota_ref[12];                  // its reference, eg "F-07849"; else empty
 } DXSpot;
 
 
@@ -854,6 +937,13 @@ extern void tftMsg (bool verbose, uint32_t dwell_ms, const char *fmt, ...) __att
 extern void tftMsg (bool verbose, uint32_t dwell_ms, const char *fmt, ...);
 #endif
 
+// N.B. noreturn: every implementation (ESPHamClock.cpp for desktop/ESP32, robinson.cpp's
+// standalone unit-test build) ends in exit()/_exit()/an infinite loop and never returns to its
+// caller. Without this, GCC can't prove that a caller's "if (!isValidHBS(h)) fatalError(...)"
+// guard actually stops execution before an out-of-range h reaches later code, which showed up as
+// a spurious -Warray-bounds warning on an inlined band_info[h] access that was never actually
+// reachable with a bad h. [[noreturn]] is standard C++11, so it's applied unconditionally rather
+// than behind the same __GNUC__ guard as the printf-format attribute below.
 #if defined(__GNUC__)
 extern void fatalError (const char *fmt, ...) __attribute__ ((format (__printf__, 1, 2)));
 #else
@@ -975,11 +1065,23 @@ extern float    antennas_dx_az;
 
 /*********************************************************************************************
  *
+ * askmodal.cpp
+ *
+ */
+
+extern bool askModalText (const char *title, const char *prompt, char text[], size_t max_len,
+                          bool to_upper = false, const char *disallow = NULL);
+
+
+
+/*********************************************************************************************
+ *
  * asknewpos.cpp
  *
  */
 
 extern bool askNewPos (const SBox &b, LatLong &ll, char grid[MAID_CHARLEN]);
+
 
 
 
@@ -1005,6 +1107,30 @@ extern AstroCir lunar_cir, solar_cir;
 extern void now_lst (double mjd, double lng, double *lst);
 extern void getLunarCir (time_t t0, const LatLong &ll, AstroCir &cir);
 extern void getSolarCir (time_t t0, const LatLong &ll, AstroCir &cir);
+
+// solar eclipse local circumstances, see astro.cpp
+
+typedef enum {
+    ECL_NONE,
+    ECL_PARTIAL,
+    ECL_ANNULAR,
+    ECL_TOTAL,
+} EclipseType;
+
+typedef struct {
+    bool visible;             // whether sun is above horizon at t_max
+    EclipseType type;         // ECL_NONE if search failed to find one
+    time_t t_max;             // time of local maximum eclipse (min separation)
+    time_t t_c1, t_c4;        // local first/last contact, 0 if not found
+    float magnitude;          // fraction of solar diameter covered, 0 if none
+    float obscuration;        // fraction of solar disk AREA covered, 0..1
+    float sun_el;             // sun elevation at t_max, rads
+    float sun_r, moon_r;      // angular radii of each disk at t_max, rads -- for exact-scale display
+    float sep;                // angular separation of centers at t_max, rads
+} EclipseCir;
+
+extern bool getNextSolarEclipse (time_t t0, const LatLong &ll, int max_months, EclipseCir &ec,
+                                    bool require_visible = true);
 extern void getSolarRS (const time_t t0, const LatLong &ll, time_t *riset, time_t *sett);
 extern void getLunarRS (const time_t t0, const LatLong &ll, time_t *riset, time_t *sett);
 
@@ -1023,7 +1149,20 @@ extern void getLunarRS (const time_t t0, const LatLong &ll, time_t *riset, time_
  */
 
 
-/* consolidated list of supported bands
+/* consolidated list of supported bands.
+ * N.B. HamBandSetting values double as bit positions in persisted band-filter bitmasks
+ * (NV_DXC_BANDS, NV_PSK_BANDS), so new bands must always be appended at the end here, never
+ * inserted in frequency order, or every existing user's saved bitmask silently reinterprets
+ * to the wrong bands. This is why 630m (longer wavelength than 160m) is listed last instead
+ * of first -- and why 4m, 2200m and 23cm, added after it, are tacked on after 630m rather than
+ * sorted in by wavelength. Same reasoning applies to each entry's *_CSPR value -- see
+ * ColorSelection below. 2200m, 630m, 4m and 23cm are mutually exclusive in the Live Spots pane
+ * (see checkPSKTouch() in pskreporter.cpp) -- at most one of the four may be selected at a time --
+ * but that is a Live Spots UI policy, not a HamBandSetting-level restriction; nothing here stops
+ * all four bits from being set in a bitmask built some other way. 23cm's "meters" field (the 2nd
+ * X macro argument, see just below) holds 23, not a true meters value -- it's cm, not m -- purely
+ * so findHamBand(int) still has a unique integer to match on; nothing currently calls
+ * findHamBand(23) expecting meters, so this can't collide with a real band.
  */
 #define SUPPORTED_BANDS                                 \
     X(HAMBAND_160M, 160, "160",  90, BAND160_CSPR)      \
@@ -1037,7 +1176,11 @@ extern void getLunarRS (const time_t t0, const LatLong &ll, time_t *riset, time_
     X(HAMBAND_12M,   12,  "12",  25, BAND12_CSPR)       \
     X(HAMBAND_10M,   10,  "10",  12, BAND10_CSPR)       \
     X(HAMBAND_6M,     6,   "6",   4, BAND6_CSPR)        \
-    X(HAMBAND_2M,     2,   "2",   0, BAND2_CSPR)
+    X(HAMBAND_2M,     2,   "2",   0, BAND2_CSPR)        \
+    X(HAMBAND_630M, 630, "630",  96, BAND630_CSPR)      \
+    X(HAMBAND_4M,     4,   "4",  97, BAND4_CSPR)        \
+    X(HAMBAND_2200M,2200,"2200", 98, BAND2200_CSPR)     \
+    X(HAMBAND_23CM,  23,"23cm",  99, BAND23CM_CSPR)
 
 #define X(a,b,c,d,e) a,                         // expands SUPPORTED_BANDS to each enum and comma
 typedef enum {
@@ -1053,6 +1196,7 @@ extern HamBandSetting findHamBand (float kHz);
 extern HamBandSetting findHamBand (int meters);
 extern ColorSelection findColSel (HamBandSetting h);
 extern const char *findBandName (HamBandSetting h);
+extern const char *findBandUnitName (HamBandSetting h);
 extern bool isValidSubBand (const char *mode);
 extern const char *findHamMode (float kHz);
 
@@ -1308,7 +1452,42 @@ extern void drawMeshtasticOnMap (void);
 extern bool getClosestMeshtasticNode (LatLong &from_ll, LatLong *mark_ll, MeshInfo *info);
 extern bool getMeshtasticPaneInfo (const SCoord &ms, LatLong *mark_ll, MeshInfo *info);
 
+// nearby APRS station, keyed by callsign, one entry per station currently within radius
+#define MAX_APRSCALL_LEN        10                  // callsign+SSID, including EOS
+#define MAX_APRSCOMMENT_LEN     44                  // free-text comment/status, APRS's usual cap
+typedef struct {
+    char call[MAX_APRSCALL_LEN];        // source callsign, eg "N0CALL-9"
+    bool has_pos;                       // whether ll/dist_mi/symbol are valid yet
+    LatLong ll;                         // last known position
+    float dist_mi;                      // great-circle distance from DE, statute miles
+    float bear_deg;                     // TRUE bearing from DE, degrees 0..360 (convert for display
+                                         // with desiredBearing() same as everywhere else in HamClock)
+    char symbol[12];                    // short human name for APRS symbol, eg "CAR", "HOUSE"
+    char sym_table;                     // raw symbol table id and code, for icon rendering
+    char sym_code;
+    uint8_t category;                   // APRSCategory (see aprscluster.cpp) this symbol belongs
+                                         // to, for the pane's category filter
+    time_t heard;                       // myNow() this station was last heard
+    char comment[MAX_APRSCOMMENT_LEN];  // free-text comment/status following the position, if any
+    bool has_course_speed;              // whether course_deg/speed_mph are valid (moving stations)
+    float course_deg;                   // TRUE course over ground, degrees 0..360
+    float speed_mph;                    // speed over ground, statute mph
+    bool has_alt;                       // whether alt_ft is valid
+    float alt_ft;                       // altitude, feet
+    bool has_wx;                        // whether the wx_* fields are valid (symbol is a WX station)
+    float wx_temp_f;                    // temperature, F
+    int wx_humidity;                    // relative humidity, percent, -1 if unknown
+    float wx_wind_mph;                  // sustained wind speed, mph
+    float wx_gust_mph;                  // wind gust, mph, -1 if unknown
+    float wx_baro_mb;                   // barometric pressure, millibars, -1 if unknown
+} APRSSpot;
+extern bool updateAPRSCluster (const SBox &box, bool fresh);
+extern void checkAPRSCluster (void);
+extern bool checkAPRSClusterTouch (const SCoord &s, const SBox &box);
+extern bool isAPRSClusterConnected (void);
+
 #define LAUNCHES_INTERVAL (2)
+#define BALLOONS_INTERVAL (15)
 
 
 
@@ -1378,12 +1557,15 @@ extern bool checkDXClusterTouch (const SCoord &s, const SBox &box);
 extern bool getDXClusterSpots (DXSpot **spp, uint8_t *nspotsp);
 extern void drawDXClusterSpotsOnMap (void);
 extern bool isDXClusterConnected(void);
+extern bool dxcHideIOTA(void);
 extern void sendDXClusterDELLGrid(void);
+extern void sendAPRSClusterNewDE (void);
 extern bool getClosestDXCluster (LatLong &ll, DXSpot *sp, LatLong *llp);
 extern bool getDXCPaneSpot (const SCoord &ms, DXSpot *dxs, LatLong *ll);
 extern bool connectDXCluster (void);
 extern const DXSpot *findDXCCall (const char *call);
-extern bool injectDXClusterSpot (const char *tx_call, const char *rx_call, const char *kHz, Message &ynot);
+extern bool injectDXClusterSpot (const char *tx_call, const char *rx_call, const char *kHz,
+const char *comment, Message &ynot);
 
 
 
@@ -1501,6 +1683,7 @@ extern uint8_t show_lp;                 // show prop long path, else short path
 #define ERAD_M          3959.0F         // earth radius, miles
 #define MI_PER_KM       0.621371F
 #define KM_PER_MI       1.609344F
+#define FT_PER_M        3.28084F
 
 #define DE_R 6                          // radius of DE marker   (erases better if even)
 #define DEAP_R 6                        // radius of DE antipodal marker (erases better if even)
@@ -1830,6 +2013,8 @@ extern void initLiveWeb(bool verbose);
 extern bool liveweb_fs_ready;
 extern int n_roweb, n_rwweb;
 extern void openLiveWebURL (const char *url);
+extern void openLiveWebURLEmbedded (const char *url);
+extern void requestLiveWebPaste (void);
 extern bool isLiveWebTouch (void);
 
 
@@ -2026,6 +2211,14 @@ typedef struct {
     uint8_t indent;             // pixels to indent
     const char *label;          // string -- user must manage memory
     MenuText *textf;            // text field -- type must be MENU_TEXT -- our label is ignored
+    bool submenu;                // true if picking this MENU_1OFN row navigates into another
+                                 // menu (eg a category picker row) rather than making a final
+                                 // choice -- draws with a distinct outline triangle indicator
+                                 // instead of the usual round radio dot, so a nested menu of
+                                 // menus is visually distinguishable from a plain single-pick
+                                 // list. Appended after label/textf so every existing positional
+                                 // aggregate init ({MENU_1OFN, set, group, indent, "label", 0})
+                                 // continues to compile unchanged and defaults this to false.
 } MenuItem;
 
 typedef struct {
@@ -2036,9 +2229,35 @@ typedef struct {
     int n_cols;                 // number of columns in which to display items
     int n_items;                // number of items[]
     MenuItem *items;            // list -- user must manage memory
+    const char *footer_text;    // optional colored status line below the items, above Ok/
+                                 // Cancel -- NULL means no footer. Every existing call site
+                                 // brace-initializes with 7 values, so this (and the field
+                                 // below) is automatically NULL/0 for all of them: adding
+                                 // this changes nothing for callers that don't know about it.
+    uint16_t footer_color;      // ignored if footer_text is NULL; 0 falls back to MENU_FGC
+    bool instant_1ofn;          // when true, tapping a MENU_1OFN item (that ends up .set)
+                                 // exits the menu immediately as if Ok had been pressed,
+                                 // instead of requiring a separate Ok tap after selecting.
+                                 // False (default for every caller not listing this field,
+                                 // same aggregate-init reasoning as footer_text above) means
+                                 // completely unchanged behavior -- selecting still requires
+                                 // a separate Ok, as it always has.
+    bool footer_live_count;     // false (default): footer_text is printed exactly as given,
+                                 // once, at initial draw only -- today's behavior, unchanged.
+                                 // true: footer_text is treated as a label prefix, and
+                                 // runMenu() appends a live "(selected/total)" count over its
+                                 // own MENU_TOGGLE/MENU_AL1OFN/MENU_0OFN/MENU_01OFN/MENU_1OFN
+                                 // items, redrawn after every toggle -- for a menu whose
+                                 // footer describes ITS OWN items. Not appropriate for a
+                                 // footer describing a different, external list (see the
+                                 // pane-choice category picker in plotmgmnt.cpp for exactly
+                                 // that distinction -- its footer reports on a master array
+                                 // living outside the running menu entirely, so it keeps
+                                 // using a plain, caller-formatted string instead).
 } MenuInfo;
 
 extern bool runMenu (MenuInfo &menu);
+extern void menuDrawItem (const MenuItem &mi, const SBox &pb, bool draw_label, bool kb_focus);
 extern void menuMsg (const SBox &box, uint16_t color, const char *msg);
 extern void menuRedrawOk (SBox &ok_b, MenuOkState oks);
 
@@ -2077,6 +2296,17 @@ extern bool waitForUser (UserInput &ui);
 extern void updateMoonPane (const SBox &box);
 extern const uint16_t moon_image[HC_MOON_W*HC_MOON_H] PROGMEM;
 extern bool checkMoonTouch (const SCoord &s, const SBox &box);
+
+
+/*******************************************************************************************
+ *
+ * eclipsepane.cpp
+ *
+ */
+
+extern void updateEclipsePane (const SBox &box);
+extern bool checkEclipseTouch (const SCoord &s, const SBox &box);
+extern void checkEclipsePopupTimeout (void);
 
 
 
@@ -2176,6 +2406,38 @@ extern void reportEESize (uint16_t &ee_used, uint16_t &ee_size);
 
 extern bool updateOnTheAir (const SBox &box, bool fresh);
 extern bool checkOnTheAirTouch (TouchType tt, const SCoord &s, const SBox &box);
+
+/*********************************************************************************************
+ *
+ * bandactivity.cpp -- Band Activity heatmap pane
+ *
+ */
+
+// gen_bandactivity.pl's own window is 30 minutes and it's meant to represent "current"
+// conditions (see that script's header for why that's shorter than ONTA_INTERVAL-family
+// scripts' 65-minute window) -- polling much faster than that buys nothing, so this can
+// afford a longer client interval than ONTA_INTERVAL despite following the exact same
+// openCachedFile()-throttled pattern.
+#define BANDACT_INTERVAL   60                           // polling interval -- also how often the
+                                                          // pane's "X m ago" freshness caption redraws
+
+extern bool updateBandActivity (const SBox &box, bool fresh);
+
+/*********************************************************************************************
+ *
+ * hamalert.cpp
+ *
+ */
+
+extern bool connectHamAlert (void);
+extern void closeHamAlert (void);
+extern bool updateHamAlert (const SBox &box, bool fresh);
+extern void checkHamAlert (void);
+extern bool checkHamAlertTouch (TouchType tt, const SCoord &s, const SBox &box);
+extern bool isHamAlertConnected (void);
+extern void drawHamAlertSpotsOnMap (void);
+extern bool getClosestHamAlert (LatLong &ll, DXSpot *sp, LatLong *llp);
+extern bool getHamAlertPaneSpot (const SCoord &ms, DXSpot *dxs, LatLong *ll);
 
 /*********************************************************************************************
  *
@@ -2314,7 +2576,11 @@ extern PlotMask plot_rotset[PANE_N];       // each pane's PlotChoice rotation ch
 #define PANE_0_CH_MASK          (PLOTBIT(PLOT_CH_DXCLUSTER) | PLOTBIT(PLOT_CH_CONTESTS) | \
                                  PLOTBIT(PLOT_CH_ADIF) | PLOTBIT(PLOT_CH_ONTA) | \
                                  PLOTBIT(PLOT_CH_DXPEDS) | PLOTBIT(PLOT_CH_ACTIVENETS) | \
-                                 PLOTBIT(PLOT_CH_LAUNCHES) | PLOTBIT(PLOT_CH_SATACT))
+                                 PLOTBIT(PLOT_CH_LAUNCHES) | PLOTBIT(PLOT_CH_SATACT) | \
+                                 PLOTBIT(PLOT_CH_APRSCLUSTER) | \
+                                 PLOTBIT(PLOT_CH_BALLOONS) | PLOTBIT(PLOT_CH_BANDACT) | \
+                                 PLOTBIT(PLOT_CH_MARINE) | PLOTBIT(PLOT_CH_FIREWX) | \
+                                 PLOTBIT(PLOT_CH_QUAKES))
 
 // compute number of bits set in PANE_0_CH_MASK at compile time :-)
 // https://stackoverflow.com/questions/109023/count-the-number-of-set-bits-in-a-32-bit-integer
@@ -2338,7 +2604,15 @@ extern void forcePaneRotationPrev (PlotPane pp);
 extern bool plotChoiceIsAvailable (PlotChoice ch);
 extern void logPaneRotSet (PlotPane pp, PlotChoice ch);
 extern void logBRBRotSet(void);
-extern void showRotatingBorder (void);
+extern void showRotatingBorder (PlotPane skip_pp = PANE_NONE);   // skip_pp: leave this pane's
+                                                                  // border alone, eg because a
+                                                                  // picker for it is up right now
+extern PlotPane menu_open_for_pane;    // PANE_NONE, or the one pane whose own picker is up right
+                                        // now -- showRotatingBorder() always leaves this pane's
+                                        // border alone too, in addition to any skip_pp a caller
+                                        // passes explicitly, since most of showRotatingBorder()'s
+                                        // callers (eg updateClocks(), on every tick) have no idea
+                                        // a picker might be open and can't pass skip_pp themselves
 extern void initPlotPanes(void);
 extern void savePlotOps(void);
 extern int tickmarks (float min, float max, int numdiv, float ticks[]);
@@ -2411,6 +2685,7 @@ extern uint32_t psk_bands;              // bitmask of 1 << PSKBandSetting
 extern uint16_t psk_maxage_mins;        // max age, minutes
 extern uint8_t psk_showdist;            // show distances, else counts
 extern uint8_t psk_showpath;            // whether to draw paths
+extern uint8_t psk_showonmap;           // whether to draw spots on the map at all
 
 extern bool updatePSKReporter (const SBox &box, bool force);
 extern bool checkPSKTouch (const SCoord &s, const SBox &box);
@@ -2440,7 +2715,8 @@ extern bool getMaxDistPSK (const SCoord &ms, DXSpot *sp, LatLong *mark_ll);
     X(QRZ_NONE,     "No",          NULL)                                        \
     X(QRZ_QRZ,      "qrz.com",     "https://www.qrz.com/db/WB0OEW")             \
     X(QRZ_HAMCALL,  "hamcall.net", "https://hamcall.net/call?callsign=WB0OEW")  \
-    X(QRZ_CQQRZ,    "cqqrz.com",   "https://www.qrzcq.com/call/WB0OEW")
+    X(QRZ_CQQRZ,    "cqqrz.com",   "https://www.qrzcq.com/call/WB0OEW")         \
+    X(QRZ_HAMQTH,   "hamqth.com",  "https://www.hamqth.com/WB0OEW")
 
 #define X(a,b,c)  a,                    // expands QRZTABLE to each enum and comma
 typedef enum {
@@ -2458,7 +2734,10 @@ extern QRZURLTable qrz_urltable[QRZ_N];
 
 extern void openQRZBio (const DXSpot &s);
 extern void openURL (const char *url);
-
+extern void openURLPopup (const char *url);
+extern void openURLPopupEmbed (const char *url);
+extern bool showQRCodeModal (const char *url, const char *title, const char *subtitle = NULL, const char *open_lbl = NULL);
+extern void openMovieURL (const char *hc_page, const char *orig_url, const char *title = NULL);
 
 
 /*********************************************************************************************
@@ -2556,6 +2835,58 @@ extern bool getStormMapMenuInfo (const LatLong &ll, char *line1, size_t line1_le
         char *line2, size_t line2_len, char *line3, size_t line3_len);
 extern uint16_t stormCategoryColor (uint8_t cat, uint16_t wind_kt);
 
+/*
+ * marinewarnings.cpp
+ */
+
+#define MARINEWARN_INTERVAL      (2)
+
+extern void initMarineWarnings (void);
+extern bool checkMarineWarningsData (void);
+extern bool updateMarineWarnings (const SBox &box, bool fresh);
+extern void drawMarineWarningsPane (const SBox &box);
+extern void drawMarineWarningsOnMap (void);
+extern bool checkMarineWarningsTouch (const SCoord &s, const SBox &box);
+extern bool marineWarningsActive (void);
+extern bool injectTestMarineWarning (const char *id, const char *office, float lat, float lng,
+                                      int minutes, const char *headline);
+extern void clearTestMarineWarnings (void);
+
+/*
+ * firewx.cpp
+ */
+
+#define FIREWX_INTERVAL      (2)
+
+extern void initFireWx (void);
+extern bool checkFireWxData (void);
+extern bool updateFireWx (const SBox &box, bool fresh);
+extern void drawFireWxPane (const SBox &box);
+extern void drawFireWxOnMap (void);
+extern bool checkFireWxTouch (const SCoord &s, const SBox &box);
+extern bool fireWxActive (void);
+extern bool injectTestFireWx (const char *id, const char *office, float lat, float lng,
+                               int minutes, const char *headline);
+extern void clearTestFireWx (void);
+
+/*
+ * quakes.cpp
+ */
+
+#define QUAKES_INTERVAL      (2)
+
+extern void initQuakes (void);
+extern bool checkQuakesData (void);
+extern bool updateQuakes (const SBox &box, bool fresh);
+extern void drawQuakesPane (const SBox &box);
+extern void drawQuakesOnMap (void);
+extern bool checkQuakesTouch (const SCoord &s, const SBox &box);
+extern bool quakesActive (void);
+extern bool injectTestQuake (const char *id, float mag, float depth_km, float lat, float lng,
+                              const char *place);
+extern void clearTestQuakes (void);
+extern bool checkQuakeMapTouch (const SCoord &s);
+
 /* 
  * launches.cpp
  */
@@ -2567,6 +2898,34 @@ extern const char *getLaunchHoverLabel (const LatLong &ll);
 extern bool getLaunchPaneHover (const SCoord &ms, LatLong *ll, char *label, size_t label_len);
 extern bool getLaunchMapMenuInfo (const LatLong &ll, char *l1, size_t l1n, char *l2, size_t l2n,
         char *l3, size_t l3n, const char **wiki_url);
+
+/*
+ * balloons.cpp
+ */
+
+// balloon map plotting + hover info -- same pattern as ActiveNetInfo/MeshInfo above
+typedef struct {
+    char name[32];                      // flight/payload display name
+    bool is_hab;                        // true=HAB, false=PicoBalloon
+    bool has_alt;
+    float alt_m;
+    bool has_freq;
+    float freq_hz;
+    bool has_batt;
+    float batt_v;
+    bool has_temp;
+    float temp_c;
+    char age[24];                       // precomputed "3h12m"-style elapsed-since-heard text
+    LatLong ll;
+} BalloonHoverInfo;
+
+extern bool updateBalloons     (const SBox &box, bool fresh);
+extern bool checkBalloonsTouch (const SCoord &s, const SBox &box);
+extern void drawBalloonsOnMap  (void);
+extern bool getClosestBalloon    (const LatLong &ll, LatLong *mark_ll, BalloonHoverInfo *info);
+extern bool getBalloonPaneInfo   (const SCoord &ms, LatLong *mark_ll, BalloonHoverInfo *info);
+extern bool getBalloonMapMenuInfo (const LatLong &ll, char *l1, size_t l1n, char *l2, size_t l2n,
+        char *l3, size_t l3n, const char **url);
 
 
 
@@ -2598,6 +2957,7 @@ class ScrollBar {
         void init (int mv, int nd, SBox &b);
         bool checkTouch (char kb, SCoord &s);
         int getTop(void) {return (top_vis); };
+        void draw();
 
     private:
 
@@ -2611,7 +2971,6 @@ class ScrollBar {
         bool okToScrollUp (void) {return (top_vis > 0); }
         void scrollUp();
         void scrollDown();
-        void draw();
 
         bool canScrollUp(void);
         bool canScrollDw(void);
@@ -2785,6 +3144,10 @@ extern void renameCfgInfo (const char *from, const char *to);
 extern const char *getDXClusterHost(void);
 extern int getDXClusterPort(void);
 extern bool setDXCluster (char *host, char *port_str, Message &ynot);
+extern const char *getAPRSClusterHost(void);
+extern int getAPRSClusterPort(void);
+extern int getAPRSClusterRadiusMiles(void);
+extern bool useAPRSCluster(void);
 extern bool showTempC(void);
 extern bool showATMhPa(void);
 extern bool showDistKm(void);
@@ -2793,6 +3156,9 @@ extern bool useGPSDTime(void);
 extern bool useGPSDLoc(void);
 extern const char *getGPSDHost(void);
 extern const char *getPiAwareHost(void);
+extern const char *getHamAlertLogin(void);
+extern const char *getHamAlertPasswd(void);
+extern bool useHamAlert(void);
 extern bool useNMEATime(void);
 extern bool useNMEALoc(void);
 extern const char *getNMEAFile(void);
@@ -2806,6 +3172,7 @@ extern const char *getLocalNTPHost(void);
 extern bool useDXCluster(void);
 extern uint32_t getKX3Baud(void);
 extern void drawStringInBox (const char str[], const SBox &b, bool inverted, uint16_t color);
+extern void drawEyeIcon (const SBox &b, bool hide);
 extern bool logUsageOk(void);
 extern uint16_t getMapColor (ColorSelection cid);
 extern const char* getMapColorName (ColorSelection cid);
@@ -2842,6 +3209,7 @@ extern bool showNewDXDEWx(void);
 extern int getPaneRotationPeriod (void);
 extern bool showPIP(void);
 extern bool showPlanets(void);
+extern bool wefaxEnabled(void);
 extern bool autoMap(void);
 extern int getMapRotationPeriod(void);
 extern GrayDpy_t getGrayDisplay(void);
@@ -3181,7 +3549,7 @@ extern void drawSpotPathOnMap (const DXSpot &spot);
 extern void ditherLL (LatLong &ll);
 extern void drawSpotDot (int16_t raw_x, int16_t raw_y, uint16_t radius, LabelOnMapEnd txrx, uint16_t color);
 extern void drawVisibleSpots (WatchListId wl_id, const DXSpot *spots, const ScrollState &ss, const SBox &box,
-    int16_t app_color);
+    int16_t app_color, const SBox *ctrl_box = NULL);
 
 
 typedef int (*PQSF)(const void *, const void *);        // pointer to qsort-style compare function
@@ -3314,7 +3682,7 @@ extern void strncpySubChar (char to_str[], const char from_str[], char to_char, 
  *
  */
 
-void tooltip (const SCoord &s, const char *tip);
+void tooltip (const SCoord &s, const char *tip, const SBox *bound = NULL);
 
 
 
@@ -3333,6 +3701,9 @@ extern TouchType checkKBWarp (SCoord &s);
 // for passing web touch command to checkTouch()
 extern TouchType wifi_tt;
 extern SCoord wifi_tt_s;
+extern bool wifi_tt_live;
+extern bool wifi_kb_live;
+extern bool cur_touch_live;
 
 
 
@@ -3396,7 +3767,11 @@ extern bool parseWebCommand (WebArgs &wa, char line[], size_t line_len);
 extern void initWebServer(void);
 extern void checkWebServer(bool ro);
 extern TouchType readCalTouchWS (SCoord &s);
+#if defined(_IS_ANDROID) || defined(__ANDROID__)
+extern char platform[32];
+#else
 extern const char platform[];
+#endif
 extern void runNextDemoCommand(void);
 extern bool bypass_pw;
 
@@ -3440,7 +3815,11 @@ extern void initSys (void);
 extern void initWiFiRetry(void);
 extern void scheduleNewPlot (PlotChoice ch);
 extern void scheduleNewCoreMap (CoreMaps cm);
-extern void updateWiFi(void);
+extern void updateWiFi(PlotPane skip_pp = PANE_NONE);      // skip_pp: don't touch this pane
+                                                             // (rotation or content), eg because
+                                                             // a picker for it is on screen right
+                                                             // now and would have its own overlay
+                                                             // clobbered by a normal pane redraw
 extern bool checkBCTouch (const SCoord &s, const SBox &b);
 extern void setPlotVisible (PlotChoice pc);
 extern bool setPlotChoice (PlotPane new_pp, PlotChoice new_ch);
@@ -3449,10 +3828,13 @@ extern void scheduleRSSNow(void);
 extern bool getTCPLine (WiFiClient &client, char line[], uint16_t line_len, uint16_t *ll);
 extern void sendUserAgent (WiFiClient &client);
 extern void httpHCGET (WiFiClient &client, const char *server, const char *hc_page);
+extern void httpHCGET (WiFiClient &client, const char *server, const char *hc_page, time_t if_modified_since);
 extern bool downloadZFile (WiFiClient &client, const char *filename, long len);
 extern bool connecthttpsHCGET (WiFiClient &client, const char *server, const char *hc_page);
 extern bool httpSkipHeader (WiFiClient &client);
+extern bool httpSkipHeader (WiFiClient &client, int *http_status);
 extern bool httpSkipHeader (WiFiClient &client, const char *header, char *value, int value_len);
+extern bool httpSkipHeader (WiFiClient &client, int *http_status, const char *header, char *value, int value_len);
 extern int getNTPServers (const NTPServer **listp);
 extern bool setRSSTitle (const char *title, int &n_titles, int &max_titles);
 extern time_t nextPaneRotation (PlotPane pp);

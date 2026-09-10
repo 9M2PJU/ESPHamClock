@@ -1,3 +1,26 @@
+#ifdef _WIN32
+
+/* Windows stub: I2C-USB serial bridge not supported on Windows.
+ * Provide no-op stubs so the object compiles. */
+
+#include <stdio.h>
+#include <string.h>
+#include "i2cdriver.h"
+
+bool i2c_connect(I2CDriver *sd, const char* portname) { (void)sd; (void)portname; return false; }
+bool i2c_getstatus(I2CDriver *sd) { (void)sd; return false; }
+bool i2c_reset(I2CDriver *sd) { (void)sd; return false; }
+void i2c_reboot(I2CDriver *sd) { (void)sd; }
+bool i2c_write(I2CDriver *sd, const uint8_t bytes[], size_t nn) { (void)sd; (void)bytes; (void)nn; return false; }
+bool i2c_read(I2CDriver *sd, uint8_t bytes[], size_t nn) { (void)sd; (void)bytes; (void)nn; return false; }
+bool i2c_start(I2CDriver *sd, uint8_t dev, uint8_t op) { (void)sd; (void)dev; (void)op; return false; }
+bool i2c_stop(I2CDriver *sd) { (void)sd; return false; }
+void i2c_monitor(I2CDriver *sd, int enable) { (void)sd; (void)enable; }
+void i2c_capture(I2CDriver *sd) { (void)sd; }
+int i2c_commands(I2CDriver *sd, int argc, char *argv[]) { (void)sd; (void)argc; (void)argv; return 1; }
+
+#else /* !_WIN32 */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -652,3 +675,5 @@ int i2c_commands(I2CDriver *sd, int argc, char *argv[])
 
     return 0;
 }
+
+#endif /* !_WIN32 */

@@ -11,7 +11,12 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/stat.h>
+
+#ifdef _WIN32
+#include "win32_compat.h"
+#else
 #include <sys/file.h>
+#endif
 
 #include "Arduino.h"
 #include "EEPROM.h"

@@ -1,5 +1,6 @@
-# 9M2PJU ESPHamClock - Automated Windows One-Click Installer
-# Author: 9M2PJU <9m2pju@gmail.com>
+# 9M2PJU HamClock - Automated Windows One-Click Installer
+# Author: 9M2PJU (https://hamradio.my)
+# Contact / Support Email: 9m2pju@hamradio.my
 # Website: https://hamclock.hamradio.my
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -8,7 +9,7 @@ $ErrorActionPreference = "Stop"
 function Write-Header {
     Clear-Host
     Write-Host "======================================================" -ForegroundColor Cyan
-    Write-Host "      9M2PJU ESPHamClock - Windows Installer           " -ForegroundColor Yellow
+    Write-Host "      9M2PJU HamClock - Windows Installer           " -ForegroundColor Yellow
     Write-Host "   Space Weather, Propagation & Telemetry Dashboard   " -ForegroundColor Green
     Write-Host "======================================================" -ForegroundColor Cyan
     Write-Host ""
@@ -64,8 +65,8 @@ switch ($choice) {
             Write-Host "❌ Docker Desktop is not running. Please start Docker Desktop or install it from https://docker.com" -ForegroundColor Red
             Exit 1
         }
-        Write-Host "🚀 Pulling and starting 9M2PJU ESPHamClock Docker container..." -ForegroundColor Green
-        docker pull ghcr.io/9m2pju/9m2pju-esphamclock-installer:latest
+        Write-Host "🚀 Pulling and starting 9M2PJU HamClock Docker container..." -ForegroundColor Green
+        docker pull ghcr.io/9m2pju/9m2pju-hamclock-docker:latest
         docker rm -f hamclock 2>$null | Out-Null
         docker run -d `
             --name hamclock `
@@ -74,10 +75,10 @@ switch ($choice) {
             -p 8081:8081 `
             -p 8082:8082 `
             -v "$env:USERPROFILE\.hamclock:/root/.hamclock" `
-            ghcr.io/9m2pju/9m2pju-esphamclock-installer:latest
+            ghcr.io/9m2pju/9m2pju-hamclock-docker:latest
 
         Write-Host ""
-        Write-Host "✅ ESPHamClock is running in the background!" -ForegroundColor Green
+        Write-Host "✅ HamClock is running in the background!" -ForegroundColor Green
         Write-Host "🌐 Opening interactive dashboard in default browser..." -ForegroundColor Cyan
         Start-Sleep -Seconds 2
         Start-Process "http://localhost:8081/live.html"
@@ -88,8 +89,8 @@ switch ($choice) {
             Write-Host "❌ WSL is not installed. To install WSL, open PowerShell as Administrator and run: wsl --install" -ForegroundColor Red
             Exit 1
         }
-        Write-Host "🚀 Installing and compiling ESPHamClock inside WSL..." -ForegroundColor Green
-        wsl -e bash -c "curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-ESPHamClock-Installer/main/install.sh | bash"
+        Write-Host "🚀 Installing and compiling HamClock inside WSL..." -ForegroundColor Green
+        wsl -e bash -c "curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install.sh | bash"
         
         Write-Host ""
         Write-Host "✅ Installation completed in WSL." -ForegroundColor Green

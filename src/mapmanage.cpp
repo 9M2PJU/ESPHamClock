@@ -12,7 +12,9 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/stat.h>
+#ifndef _WIN32
 #include <sys/mman.h>
+#endif
 
 
 #include "HamClock.h"

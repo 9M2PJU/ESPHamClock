@@ -185,6 +185,7 @@ class Adafruit_RA8875 {
         // put and get next keyboard character
         void putChar (char c, bool ctrl, bool shift);
         char getChar(bool *ctrl, bool *shift);
+        void pasteClipboard(void);
 
         // set and get current mouse position
         bool getMouse (uint16_t *x, uint16_t *y);
@@ -206,6 +207,7 @@ class Adafruit_RA8875 {
         // user direct pixel access
         bool getBackingStore (uint8_t *&bs, int x0, int y0, int w, int h);
         bool setBackingStore (uint8_t *&bs, int x0, int y0, int w, int h);
+        bool restoreBackingRegion (uint8_t *bs, int x0, int y0, int w, int h, int sub_y0, int sub_h);
         bool getRawPix (uint8_t *rgb24, int npix);
         bool getPixelRaw (uint16_t x, uint16_t y, uint8_t *r, uint8_t *g, uint8_t *b);
 
@@ -214,6 +216,12 @@ class Adafruit_RA8875 {
         void setGrayDisplay (GrayDpy_t g) {
             gray_type = g;
         };
+
+        // return the app window's absolute position and size on the X screen, for positioning
+        // companion popup windows (eg the ADS-B Chromium app-mode popup, see qrz.cpp). only
+        // meaningful with _USE_X11; returns false everywhere else (fb0, ESP32, Android) since
+        // there's no separate windowing layer to query.
+        bool getWinScreenGeom (int *x, int *y, int *w, int *h);
 
     protected:
 

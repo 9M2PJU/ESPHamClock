@@ -1,5 +1,19 @@
-/* Get lat/long and time from NMEA sentences.
- */
+#ifdef _WIN32
+
+/* Windows stub: NMEA uses POSIX termios serial APIs not available on
+ * Windows. Provide stubs for functions defined only in nmea.cpp so
+ * the web-only build can compile and link. Functions also defined in
+ * setup.cpp (useNMEATime, useNMEALoc, getNMEAFile, getNMEABaud) are
+ * not duplicated here. */
+
+#include "HamClock.h"
+
+bool getNMEALatLong(LatLong &ll) { (void)ll; return false; }
+time_t getNMEAUTC(void) { return 0; }
+void updateNMEALoc(void) {}
+bool checkNMEAFilename(const char *fn, Message &ynot) { (void)fn; (void)ynot; return false; }
+
+#else /* !_WIN32 */
 
 #include <termios.h>
 
@@ -498,3 +512,5 @@ void updateNMEALoc()
         if (miles > FOLLOW_MIND)
             newDE (ll, NULL);
 }
+
+#endif /* !_WIN32 */

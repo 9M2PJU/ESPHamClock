@@ -1,4 +1,6 @@
-CXX=g++
+CXX = g++
+AR = ar
+RANLIB = ranlib
 
 LIBOBJ =  \
 	adler32.o \
@@ -12,8 +14,8 @@ LIBOBJ =  \
 	zutil.o
 
 libzlib-hc.a: $(LIBOBJ)
-	ar rc libzlib-hc.a $(LIBOBJ)
-	ranlib libzlib-hc.a
+	$(AR) rc libzlib-hc.a $(LIBOBJ)
+	$(RANLIB) libzlib-hc.a
 
 zpipe: zpipe.o libzlib-hc.a
 	$(CXX) -o zpipe zpipe.o libzlib-hc.a

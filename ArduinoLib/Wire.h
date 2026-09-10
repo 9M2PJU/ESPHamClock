@@ -13,7 +13,10 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
+
+#ifndef _WIN32
 #include <sys/ioctl.h>
+#endif
 
 #include "Arduino.h"
 #include "i2cdriver.h"

@@ -33,10 +33,26 @@ extern "C" {
 	#include <stdbool.h>
 	#include <stdint.h>
 	#include <inttypes.h>
+	#include <pthread.h>
 
+        #ifdef _WIN32
+        #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+        #endif
+        #ifndef NOMINMAX
+        #define NOMINMAX
+        #endif
+        #ifndef NOGDI
+        #define NOGDI
+        #endif
+        #include <winsock2.h>
+        #include <ws2tcpip.h>
+        #include <windows.h>
+        #else
         #include <arpa/inet.h>
         #include <sys/socket.h>
         #include <netinet/in.h>
+        #endif
 
 	/**
 	 * @name Global configurations
@@ -220,7 +236,11 @@ extern "C" {
 	/**@}*/
 
 	#define SEND(client,buf,len) send_all((client), (buf), (len), MSG_NOSIGNAL)
+	#ifdef _WIN32
+	#define RECV(fd,buf,len) recv((fd)->client_sock, (char*)(buf), (len), 0)
+	#else
 	#define RECV(fd,buf,len) recv((fd)->client_sock, (buf), (len), 0)
+	#endif
 
         /**
          * @brief Client socks.

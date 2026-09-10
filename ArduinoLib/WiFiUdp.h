@@ -8,10 +8,15 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/types.h>
+
+#ifdef _WIN32
+#include "win32_compat.h"
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#endif
 
 
 #include "ESP8266WiFi.h"

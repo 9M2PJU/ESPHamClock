@@ -14,17 +14,28 @@
 #include <pthread.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+
+#ifdef _WIN32
+#include "win32_compat.h"
+#else
 #include <sys/wait.h>
 #include <sys/resource.h>
-#include <sys/stat.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#endif
 
 #include "WiFiClient.h"
 #include "WiFiServer.h"
+
+#ifdef _WIN32
+#define hc_sock_close(fd)  closesocket(fd)
+#else
+#define hc_sock_close(fd)  ::close(fd)
+#endif
 
 // set for more info
 static bool _trace_server = false;
@@ -58,33 +69,43 @@ bool WiFiServer::begin(char ynot[])
         serv_socket.sin_family = AF_INET;
         serv_socket.sin_addr.s_addr = htonl (INADDR_ANY);
         serv_socket.sin_port = htons ((unsigned short)port);
+#ifdef _WIN32
+        if (::setsockopt(sfd,SOL_SOCKET,SO_REUSEADDR,(const char*)&reuse,sizeof(reuse)) < 0) {
+#else
         if (::setsockopt(sfd,SOL_SOCKET,SO_REUSEADDR,&reuse,sizeof(reuse)) < 0) {
+#endif
             snprintf (ynot, 50, "setsockopt(SO_REUSEADDR): %s", strerror(errno));
-	    close (sfd);
+	    hc_sock_close (sfd);
 	    return (false);
 	}
     #ifdef SO_REUSEPORT
+        #ifdef _WIN32
+        if (::setsockopt(sfd,SOL_SOCKET,SO_REUSEPORT,(const char*)&reuse,sizeof(reuse)) < 0) {
+        #else
         if (::setsockopt(sfd,SOL_SOCKET,SO_REUSEPORT,&reuse,sizeof(reuse)) < 0) {
+        #endif
             snprintf (ynot, 50, "setsockopt(SO_REUSEPORT): %s", strerror(errno));
-	    close (sfd);
+	    hc_sock_close (sfd);
 	    return (false);
 	}
     #endif
         if (::bind(sfd,(struct sockaddr*)&serv_socket,sizeof(serv_socket)) < 0) {
             snprintf (ynot, 50, "bind(%d): %s", port, strerror(errno));
-	    close (sfd);
+	    hc_sock_close (sfd);
 	    return (false);
 	}
 
         /* willing to accept connections with a backlog of 5 pending */
         if (::listen (sfd, 5) < 0) {
             snprintf (ynot, 50, "listen: %s", strerror(errno));
-	    close (sfd);
+	    hc_sock_close (sfd);
 	    return (false);
 	}
 
         /* handle write errors inline */
+#ifndef _WIN32
         signal (SIGPIPE, SIG_IGN);
+#endif
 
         /* ok */
         if (_trace_server)
@@ -134,7 +155,7 @@ void WiFiServer::stop()
             if (_trace_server)
                 printf ("WiFiServer: closing fd %d\n", socket);
             shutdown (socket, SHUT_RDWR);
-            close (socket);
+            hc_sock_close (socket);
             socket = -1;
         }
 }

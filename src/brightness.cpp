@@ -39,7 +39,7 @@
 #include <Adafruit_LTR329_LTR303.h>
 static Adafruit_LTR329 ltr = Adafruit_LTR329();
 
-#if defined(_IS_UNIX)
+#if defined(_IS_UNIX) && !defined(_WIN32)
 #include <sys/wait.h>
 #endif
 

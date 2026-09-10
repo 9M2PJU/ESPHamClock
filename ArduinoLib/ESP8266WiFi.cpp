@@ -1,6 +1,90 @@
 /* simple network interface functions for unix.
  */
 
+#ifdef _WIN32
+
+/* Windows stub: WiFi scanning/status uses Linux/macOS-specific APIs
+ * (getifaddrs, popen, wireless ioctls). Provide minimal stubs that
+ * allow HamClock to compile and run in web-only mode. Network status
+ * is assumed connected; detailed interface info is not available. */
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
+
+#include "ESP8266WiFi.h"
+
+class WiFi WiFi;
+
+void WiFi::begin(char *ssid, char *pw)
+{
+    (void)ssid;
+    (void)pw;
+}
+
+IPAddress WiFi::localIP(void)
+{
+    static IPAddress a;
+    if (a[0] != 0)
+        return a;
+
+    /* Use getaddrinfo to resolve backend host and return that address
+     * as our "local" IP (same approach as the Unix version). */
+    struct addrinfo hints, *aip = NULL;
+    char port_str[16];
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    snprintf(port_str, sizeof(port_str), "%d", backend_port);
+    int error = ::getaddrinfo(backend_host, port_str, &hints, &aip);
+    if (!error && aip) {
+        struct sockaddr_in *sin = (struct sockaddr_in *)aip->ai_addr;
+        unsigned char *bytes = (unsigned char *)&sin->sin_addr;
+        a[0] = bytes[0]; a[1] = bytes[1]; a[2] = bytes[2]; a[3] = bytes[3];
+        freeaddrinfo(aip);
+    }
+    return a;
+}
+
+IPAddress WiFi::subnetMask(void)  { return IPAddress(0,0,0,0); }
+IPAddress WiFi::gatewayIP(void)   { return IPAddress(0,0,0,0); }
+IPAddress WiFi::dnsIP(void)       { return IPAddress(0,0,0,0); }
+
+bool WiFi::RSSI(int &value, bool &is_dbm)
+{
+    (void)value;
+    (void)is_dbm;
+    return false;
+}
+
+int WiFi::status(void)    { return WL_CONNECTED; }
+int WiFi::mode(int m)     { (void)m; return WIFI_OTHER; }
+
+std::string WiFi::macAddress(void)
+{
+    return std::string("FF:FF:FF:FF:FF:FF");
+}
+
+std::string WiFi::hostname(void)
+{
+    char hn[512];
+    if (gethostname(hn, sizeof(hn)))
+        strcpy(hn, "hostname??");
+    else {
+        char *dot = strchr(hn, '.');
+        if (dot) *dot = '\0';
+    }
+    return std::string(hn);
+}
+
+int WiFi::channel(void)   { return 0; }
+std::string WiFi::SSID(void) { return std::string(""); }
+std::string WiFi::psk(void)  { return std::string(""); }
+
+#else /* !_WIN32 */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -518,3 +602,5 @@ std::string WiFi::psk(void)
 {
 	return (std::string(""));
 }
+
+#endif /* !_WIN32 */

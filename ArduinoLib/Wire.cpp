@@ -13,6 +13,52 @@
  *   https://i2cdriver.com/i2cdriver.pdf
  */
 
+#ifdef _WIN32
+
+/* Windows stub: I2C sensor support is not available on Windows.
+ * Provide minimal implementations so the Wire object compiles and
+ * all sensor operations gracefully return failure. */
+
+#include <stdio.h>
+#include <string.h>
+#include <pthread.h>
+
+#include "Arduino.h"
+#include "Wire.h"
+
+TwoWire Wire;
+pthread_mutex_t TwoWire::lock;
+
+TwoWire::TwoWire(void)
+{
+    memset(rxdata, 0, sizeof(rxdata));
+    memset(txdata, 0, sizeof(txdata));
+    i2c_fd = -1;
+    dev_addr = 0;
+    n_txdata = 0;
+    n_rxdata = 0;
+    n_retdata = 0;
+    transmitting = false;
+    memset(&excam, 0, sizeof(excam));
+    excam.port = (HANDLE)(intptr_t)-1;
+    filename = NULL;
+    pthread_mutex_init(&lock, NULL);
+}
+
+TwoWire::~TwoWire(void)
+{
+    pthread_mutex_destroy(&lock);
+}
+
+void TwoWire::begin(void) {}
+
+bool TwoWire::read8(uint8_t dev, uint8_t reg, uint8_t &val)   { (void)dev; (void)reg; (void)val; return false; }
+bool TwoWire::read16(uint8_t dev, uint8_t reg, uint16_t &val) { (void)dev; (void)reg; (void)val; return false; }
+bool TwoWire::read24(uint8_t dev, uint8_t reg, uint32_t &val) { (void)dev; (void)reg; (void)val; return false; }
+bool TwoWire::read32(uint8_t dev, uint8_t reg, uint32_t &val) { (void)dev; (void)reg; (void)val; return false; }
+bool TwoWire::write8(uint8_t dev, uint8_t reg, uint8_t val)   { (void)dev; (void)reg; (void)val; return false; }
+
+#else /* !_WIN32 */
 
 #include <stdio.h>
 #include <stdint.h>
@@ -680,3 +726,5 @@ int TwoWire::read(void)
             return (0x99);
         }
 }
+
+#endif /* !_WIN32 */

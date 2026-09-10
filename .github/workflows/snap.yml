@@ -25,16 +25,45 @@ jobs:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: ⚙️ Set up QEMU for ARM
+      - name: 🔧 Install Snapcraft
+        run: |
+          sudo snap install snapcraft --classic --channel 8.x/stable
+
+      - name: 🔧 Configure Cross-Compilation Package Sources
         if: matrix.architecture != 'amd64'
-        uses: docker/setup-qemu-action@v3
+        run: |
+          DEB_ARCH="${{ matrix.architecture }}"
+          # Restrict existing ubuntu repos to amd64 only (deb822 format on 24.04)
+          if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
+            sudo sed -i '/^Types: deb/a Architectures: amd64' /etc/apt/sources.list.d/ubuntu.sources
+          elif [ -f /etc/apt/sources.list ]; then
+            sudo sed -i 's/^deb /deb [arch=amd64] /g; s/^deb-src /deb-src [arch=amd64] /g' /etc/apt/sources.list
+          fi
+          # Add ubuntu-ports for the target architecture (deb822 format)
+          cat <<EOF | sudo tee /etc/apt/sources.list.d/ports.sources
+          Types: deb
+          Architectures: $DEB_ARCH
+          URIs: http://ports.ubuntu.com/ubuntu-ports/
+          Suites: noble noble-updates noble-backports
+          Components: main universe
+          Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+
+          Types: deb
+          Architectures: $DEB_ARCH
+          URIs: http://ports.ubuntu.com/ubuntu-ports/
+          Suites: noble-security
+          Components: main universe
+          Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+          EOF
+          sudo dpkg --add-architecture "$DEB_ARCH"
+          sudo apt-get update -qq
 
       - name: 📦 Build Snap
-        uses: snapcore/action-build@v1
         id: snapcraft
-        with:
-          snapcraft-channel: 8.x/stable
-          snapcraft-args: --platform ${{ matrix.architecture }}
+        run: |
+          sudo snapcraft pack --destructive-mode --platform ${{ matrix.architecture }}
+          sudo chown $USER *.snap
+          echo "snap=$(ls *.snap)" >> $GITHUB_OUTPUT
 
       - name: 📤 Upload Snap Artifact
         uses: actions/upload-artifact@v4
@@ -43,10 +72,10 @@ jobs:
           path: ${{ steps.snapcraft.outputs.snap }}
 
       - name: 🚀 Publish to Snap Store
-        if: startsWith(github.ref, 'refs/tags/v') && env.SNAPCRAFT_STORE_CREDENTIALS != ''
+        if: (startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch') && env.SNAPCRAFT_STORE_CREDENTIALS != ''
         uses: snapcore/action-publish@v1
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         with:
           snap: ${{ steps.snapcraft.outputs.snap }}
-          release: candidate
+          release: stable

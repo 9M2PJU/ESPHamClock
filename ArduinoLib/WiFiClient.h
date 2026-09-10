@@ -14,15 +14,23 @@
 #include <pthread.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+
+#ifndef _WIN32
+#include <sys/select.h>
+#endif
+
+#ifdef _WIN32
+#include "win32_compat.h"
+#else
 #include <sys/wait.h>
 #include <sys/resource.h>
-#include <sys/select.h>
-#include <sys/stat.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#endif
 
 /* version of Arduino WiFiClient that runs on rasp pi
  */

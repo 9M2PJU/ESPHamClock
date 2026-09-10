@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# ==============================================================================
+# 9M2PJU HamClock Docker Entrypoint
+# Author: 9M2PJU (https://hamradio.my)
+# Contact / Support Email: 9m2pju@hamradio.my
+# ==============================================================================
 set -e
 
 # Default resolution to 800x480 if not set

@@ -10,7 +10,7 @@
 # WIFI_NEVER=1
 
 # always runs these non-file targets
-.PHONY: clean clobber help hclibs install
+.PHONY: clean clobber help hclibs install mingw-hclibs mingw-objs mingw-web-800x480 mingw-web-1600x960 mingw-web-2400x1440 mingw-web-3200x1920 mingw-all-web mingw-clean
 
 TOP_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
@@ -109,6 +109,15 @@ help:
 	@printf "    install                   install target (default: /usr/local/bin, override with DIR=...)\n"
 	@printf "    clean                     remove intermediate object files\n"
 	@printf "    clobber                   remove all object files and built binaries\n"
+	@printf "\n";
+	@printf "    mingw-web-800x480         Windows .exe: headless web server (cross-compiled via MinGW-w64)\n"
+	@printf "    mingw-web-1600x960        Windows .exe: headless web server, larger\n"
+	@printf "    mingw-web-2400x1440       Windows .exe: headless web server, larger yet\n"
+	@printf "    mingw-web-3200x1920       Windows .exe: headless web server, huge\n"
+	@printf "    mingw-all-web             build all four Windows .exe targets\n"
+	@printf "    mingw-clean               remove MinGW cross-compile artifacts\n"
+	@printf "\n"
+	@printf "    NB: run 'make clean' before mingw targets if switching from native builds\n"
 	@printf "\n"
 
 hclibs:
@@ -225,3 +234,62 @@ clean:
 clobber: clean
 	touch hamclock hamclock-
 	rm -rf hamclock hamclock-*
+
+# === MinGW-w64 cross-compilation for Windows (_WEB_ONLY) ===
+#
+# Builds native Windows .exe binaries of the headless web-only HamClock.
+# Requires: mingw-w64 toolchain (e.g. pacman -S mingw-w64-gcc on Arch,
+# or apt install g++-mingw-w64-x86-64 on Debian/Ubuntu).
+#
+# Usage:
+#   make mingw-web-800x480
+#   make mingw-web-1600x960
+#   make mingw-web-2400x1440
+#   make mingw-web-3200x1920
+#   make mingw-all-web
+#
+# The resulting .exe runs the HTTP/WebSocket server; open
+# http://localhost:8081/live.html in a browser to view the dashboard.
+
+MINGW_PREFIX = x86_64-w64-mingw32
+MINGW_CXX    = $(MINGW_PREFIX)-g++
+MINGW_AR     = $(MINGW_PREFIX)-ar
+MINGW_RANLIB = $(MINGW_PREFIX)-ranlib
+
+MINGW_CXXFLAGS = -I$(TOP_DIR)/include -I$(TOP_DIR)/src -I$(TOP_DIR)/ArduinoLib -I$(TOP_DIR)/wsServer/include -I$(TOP_DIR)/zlib-hc -I. -g -O2 -Wall -pthread -std=c++17 -D_WEB_ONLY -D_WIN32_WINNT=0x0601 -D_USE_MATH_DEFINES
+MINGW_LDXXFLAGS = -LArduinoLib -LwsServer -Lzlib-hc -g -pthread -static
+MINGW_LIBS = -larduino -lzlib-hc -lws -lpthread -lws2_32 -lwinpthread
+
+# build sub-libraries with the MinGW toolchain
+mingw-hclibs:
+	$(MAKE) -C ArduinoLib libarduino.a CXX="$(MINGW_CXX)" AR="$(MINGW_AR)" RANLIB="$(MINGW_RANLIB)" CXXFLAGS="$(MINGW_CXXFLAGS)"
+	$(MAKE) -C wsServer CC="$(MINGW_CXX)" AR="$(MINGW_AR)" CXXFLAGS="$(MINGW_CXXFLAGS) -Iinclude"
+	$(MAKE) -C zlib-hc CXX="$(MINGW_CXX)" AR="$(MINGW_AR)" RANLIB="$(MINGW_RANLIB)" CXXFLAGS="$(MINGW_CXXFLAGS)"
+
+# build src/*.o with the MinGW toolchain (recursive make to override CXX/CXXFLAGS)
+mingw-objs: mingw-hclibs
+	$(MAKE) $(OBJS) CXX="$(MINGW_CXX)" CXXFLAGS="$(MINGW_CXXFLAGS)"
+
+mingw-web-800x480: mingw-objs
+	$(MINGW_CXX) $(MINGW_LDXXFLAGS) $(OBJS) -o $@.exe $(MINGW_LIBS)
+
+mingw-web-1600x960: MINGW_CXXFLAGS += -D_CLOCK_1600x960
+mingw-web-1600x960: mingw-objs
+	$(MINGW_CXX) $(MINGW_LDXXFLAGS) $(OBJS) -o $@.exe $(MINGW_LIBS)
+
+mingw-web-2400x1440: MINGW_CXXFLAGS += -D_CLOCK_2400x1440
+mingw-web-2400x1440: mingw-objs
+	$(MINGW_CXX) $(MINGW_LDXXFLAGS) $(OBJS) -o $@.exe $(MINGW_LIBS)
+
+mingw-web-3200x1920: MINGW_CXXFLAGS += -D_CLOCK_3200x1920
+mingw-web-3200x1920: mingw-objs
+	$(MINGW_CXX) $(MINGW_LDXXFLAGS) $(OBJS) -o $@.exe $(MINGW_LIBS)
+
+mingw-all-web: mingw-web-800x480 mingw-web-1600x960 mingw-web-2400x1440 mingw-web-3200x1920
+
+mingw-clean:
+	$(MAKE) -C ArduinoLib clean
+	$(MAKE) -C wsServer clean
+	$(MAKE) -C zlib-hc clean
+	touch src/x.o
+	rm -rf src/*.o mingw-web-*.exe

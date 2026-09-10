@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# 9M2PJU ESPHamClock .deb Package Generator
+# 9M2PJU HamClock .deb Package Generator
+# Author: 9M2PJU (https://hamradio.my)
+# Contact / Support Email: 9m2pju@hamradio.my
 # Usage: ./packaging/build-deb.sh <arch> [output_dir]
 # Supported arch: amd64, arm64, armhf
 # ==============================================================================
@@ -8,9 +10,9 @@
 set -e
 
 ARCH="${1:-amd64}"
-VERSION="4.29"
+VERSION="4.32"
 REVISION="1"
-PKG_NAME="esphamclock"
+PKG_NAME="hamclock"
 OUT_DIR="${2:-./dist}"
 TOP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -32,10 +34,12 @@ Priority: optional
 Architecture: $ARCH
 Depends: libx11-6, libc6, libgcc-s1, libstdc++6
 Recommends: libgpiod2 | libgpiod-dev
-Maintainer: 9M2PJU <9m2pju@gmail.com>
+Provides: esphamclock
+Replaces: esphamclock
+Maintainer: 9M2PJU <9m2pju@hamradio.my>
 Homepage: https://hamclock.hamradio.my
 Description: Portable space weather, propagation and telemetry dashboard for radio amateurs
- 9M2PJU ESPHamClock (Open HamClock - OHB Edition) is a dashboard suite for
+ 9M2PJU HamClock (Open HamClock - OHB Edition) is a dashboard suite for
  amateur radio operators providing VOACAP propagation modeling, live SDO/NOAA space
  weather, satellite tracking, ADIF log broadcasting, and rotator/radio CAT control.
  Includes pre-built 800x480, 1600x960, 2400x1440, 3200x1920 and Web resolutions.

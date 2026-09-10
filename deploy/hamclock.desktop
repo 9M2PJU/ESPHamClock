@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=ESPHamClock
+Name=HamClock
 GenericName=Amateur Radio Space Weather & Propagation Clock
 Comment=Space weather, VOACAP propagation, satellite tracker and telemetry dashboard for radio amateurs
 Exec=hamclock

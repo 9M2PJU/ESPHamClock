@@ -13,6 +13,29 @@
 #define CLEAN_AGE       (1*3600*24)             // cache age to remove, secs
 
 
+#ifdef _WIN32
+
+/* Windows implementation using GetDiskFreeSpaceExA */
+#include <windows.h>
+
+/* pass back bytes capacity and used of the dir containing our working directory.
+ * return whether successful.
+ */
+bool getFSSize (DSZ_t &cap, DSZ_t &used)
+{
+    const char *dir = our_dir.c_str();
+    ULARGE_INTEGER avail, total, free;
+    if (!GetDiskFreeSpaceExA(dir, &avail, &total, &free)) {
+        Serial.printf ("FS: Can not get info for FS containing %s\n", dir);
+        return (false);
+    }
+    cap = (DSZ_t)total.QuadPart;
+    used = cap - (DSZ_t)free.QuadPart;
+    return (true);
+}
+
+#else
+
 #include <sys/statvfs.h>
 
 /* pass back bytes capacity and used of the dir containing our working directory.
@@ -29,7 +52,6 @@ bool getFSSize (DSZ_t &cap, DSZ_t &used)
         return (false);
     }
 
-    // macOS says statvfs may not return any valid information ?!
     cap = (DSZ_t)buf.f_bsize * (DSZ_t)buf.f_blocks;
     if (cap == 0) {
         Serial.printf ("FS: bogus statvfs block size 0\n");
@@ -39,6 +61,8 @@ bool getFSSize (DSZ_t &cap, DSZ_t &used)
     used = cap - (DSZ_t)buf.f_bsize * (DSZ_t)buf.f_bfree;
     return (true);
 }
+
+#endif /* _WIN32 */
 
 /* try to remove a diag file, return whether successful
  */

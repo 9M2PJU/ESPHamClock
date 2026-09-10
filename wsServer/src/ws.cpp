@@ -37,7 +37,6 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
-typedef int socklen_t;
 #endif
 /* clang-format on */
 
@@ -1533,7 +1532,12 @@ static void *ws_accept(void *data)
 			 * See:
 			 *   https://linux.die.net/man/3/setsockopt
 			 */
-			setsockopt(new_sock, SOL_SOCKET, SO_SNDTIMEO, &time,
+			setsockopt(new_sock, SOL_SOCKET, SO_SNDTIMEO,
+#ifdef _WIN32
+				(const char*)&time,
+#else
+				&time,
+#endif
 				sizeof(struct timeval));
 		}
 

@@ -5,6 +5,8 @@
 .PHONY: default
 
 CXX = g++
+AR = ar
+RANLIB = ranlib
 
 OBJS = \
 	Adafruit_BME280.o \
@@ -33,8 +35,8 @@ default: libarduino.a
 
 libarduino.a: $(OBJS)
 	rm -f $@
-	ar r $@ $(OBJS)
-	ranlib $@
+	$(AR) r $@ $(OBJS)
+	$(RANLIB) $@
 
 clean:
 	touch x.o x.a x.a.1

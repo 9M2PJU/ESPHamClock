@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ghcr.io/9m2pju/9m2pju-esphamclock-installer:latest
+    image: ghcr.io/9m2pju/9m2pju-hamclock-docker:latest
     container_name: hamclock
     restart: unless-stopped
     ports:
