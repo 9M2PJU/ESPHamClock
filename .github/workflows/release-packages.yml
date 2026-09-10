@@ -140,10 +140,13 @@ jobs:
         id: vars
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT
+            TAG="${{ github.event.inputs.release_tag }}"
           else
-            echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+            TAG="${GITHUB_REF_NAME}"
           fi
+          VER="${TAG#v}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "ver=${VER}" >> $GITHUB_OUTPUT
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
@@ -156,35 +159,35 @@ jobs:
             ### 📦 Download Pre-Built Installers
             
             #### 🐧 Debian / Ubuntu / Raspberry Pi OS (`.deb`)
-            - **64-bit x86 (amd64)**: `hamclock_4.29-1_amd64.deb`
-            - **64-bit ARM (arm64 / RPi 4/5)**: `hamclock_4.29-1_arm64.deb`
-            - **32-bit ARM (armhf / RPi 2/3 / Raspbian)**: `hamclock_4.29-1_armhf.deb`
+            - **64-bit x86 (amd64)**: `hamclock_${{ steps.vars.outputs.ver }}-1_amd64.deb`
+            - **64-bit ARM (arm64 / RPi 4/5)**: `hamclock_${{ steps.vars.outputs.ver }}-1_arm64.deb`
+            - **32-bit ARM (armhf / RPi 2/3 / Raspbian)**: `hamclock_${{ steps.vars.outputs.ver }}-1_armhf.deb`
             
             ```bash
             # Install .deb
-            sudo dpkg -i hamclock_4.29-1_*.deb
+            sudo dpkg -i hamclock_${{ steps.vars.outputs.ver }}-1_*.deb
             sudo apt-get install -f # resolve any dependencies
             ```
             
             #### 🎩 Fedora / RHEL / openSUSE (`.rpm`)
-            - **x86_64**: `hamclock-4.29-1.x86_64.rpm`
-            - **aarch64 (ARM64)**: `hamclock-4.29-1.aarch64.rpm`
-            - **armhfp (ARM 32-bit)**: `hamclock-4.29-1.armhfp.rpm`
+            - **x86_64**: `hamclock-${{ steps.vars.outputs.ver }}-1.x86_64.rpm`
+            - **aarch64 (ARM64)**: `hamclock-${{ steps.vars.outputs.ver }}-1.aarch64.rpm`
+            - **armhfp (ARM 32-bit)**: `hamclock-${{ steps.vars.outputs.ver }}-1.armhfp.rpm`
             
             ```bash
             # Install .rpm
-            sudo rpm -Uvh hamclock-4.29-1.*.rpm
+            sudo rpm -Uvh hamclock-${{ steps.vars.outputs.ver }}-1.*.rpm
             ```
             
             #### 🚀 Universal AppImage (Portable Executable)
-            - **x86_64**: `HamClock-4.29-x86_64.AppImage`
-            - **aarch64**: `HamClock-4.29-aarch64.AppImage`
-            - **armhf**: `HamClock-4.29-armhf.AppImage`
+            - **x86_64**: `HamClock-${{ steps.vars.outputs.ver }}-x86_64.AppImage`
+            - **aarch64**: `HamClock-${{ steps.vars.outputs.ver }}-aarch64.AppImage`
+            - **armhf**: `HamClock-${{ steps.vars.outputs.ver }}-armhf.AppImage`
             
             ```bash
             # Run AppImage
-            chmod +x HamClock-4.29-*.AppImage
-            ./HamClock-4.29-*.AppImage
+            chmod +x HamClock-${{ steps.vars.outputs.ver }}-*.AppImage
+            ./HamClock-${{ steps.vars.outputs.ver }}-*.AppImage
             ```
             
             #### 🪟 Native Windows Executable (`.exe`)
