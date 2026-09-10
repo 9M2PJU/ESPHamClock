@@ -1,4 +1,4 @@
-# 💡 HamClock Usage Guide, Tips & Shortcuts
+# 💡 HamClock Usage Guide, Tips & Shortcuts (v4.32)
 
 Learn how to get the most out of your **HamClock** dashboard in the shack.
 
@@ -11,11 +11,14 @@ Every element on the HamClock screen is interactive:
 | Element | Interaction | Action |
 | :--- | :--- | :--- |
 | **World Map** | Click anywhere | Instantly sets target DX location, computes short-path (SP) / long-path (LP) bearing, distance, and turns rotator (if Auto enabled). |
-| **Pane Boxes (1 to 4)** | Tap top title | Opens selector menu to change what is displayed in that box (Space Weather, DX Spots, Satellites, VOACAP, etc.). |
+| **Pane Boxes (1 to 4)** | Tap top title | Opens selector menu to change what is displayed in that box (Space Weather, DX Spots, APRS, HAB, HamAlert, Satellites, VOACAP, etc.). |
 | **View Button (Map)** | Click `View` | Cycles map styles (Core, Topographic, Street, Night Light, Weather). |
 | **Borders Button** | Click `Borders` | Cycles political boundaries, CQ Zones, ITU Zones, and Maidenhead grids. |
-| **Callsign Banner** | Click Callsign | Opens quick on-screen callsign/message editor. |
-| **DX Spot Rows** | Click a spot | Displays DX details and prompts to QSY / tune transceiver (via `rigctld` / `flrig`). |
+| **Callsign Banner** | Click Callsign | Opens on-screen virtual keyboard to edit callsign or broadcast message. |
+| **DX Spot / HamAlert Rows** | Click a spot | Displays DX details and prompts to QSY / tune transceiver (via `rigctld` / `flrig`). |
+| **HAB Balloon Marker** | Click marker | Shows telemetry popup: balloon callsign, altitude (m/ft), ascent rate, and ground speed. |
+| **APRS Station Marker** | Click marker | Displays packet comment, path, and last heard timestamp. |
+| **QR Code Icon** | Click QR | Generates on-screen QR code for instant mobile browsing of news feeds or station links. |
 
 ---
 
@@ -53,7 +56,24 @@ Connect to HamClock from any browser on your network:
 
 ---
 
-## 📡 Satellite Tracking & Pass Predictions
+## 🎈 Live High-Altitude Balloon (HAB) Telemetry
+
+1. Tap any pane title and choose **HAB**.
+2. HamClock connects via the OHB Sondehub feed to track active meteorological and amateur radio balloon launches.
+3. Active balloons are rendered with dedicated flight paths and payload icons on the world map.
+4. Click any balloon on the map to inspect live altitude, ascent rate, telemetry frequencies, and burst predictions.
+
+---
+
+## 📡 Live APRS Cluster Integration
+
+1. Tap any pane title and choose **APRS**.
+2. Real-time APRS packets received in your region are displayed in the pane list and plotted onto the world map.
+3. Filter by station callsign, tactical call, or distance from your home station (DE).
+
+---
+
+## 🛰️ Satellite Tracking & Pass Predictions
 
 1. Tap a pane box and select **Satellites**.
 2. Select your desired satellite from the active catalog (e.g. `ISS`, `SO-50`, `AO-91`, `RS-44`, `IO-117`).

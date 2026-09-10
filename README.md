@@ -13,7 +13,7 @@
 [![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2F9m2pju%2F9m2pju--hamclock--docker-2496ED.svg?style=for-the-badge&logo=docker&logoColor=white)](https://github.com/9M2PJU/9M2PJU-HamClock-Installer/pkgs/container/9m2pju-hamclock-docker)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-9M2PJU-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/9m2pju)
 [![Wise](https://img.shields.io/badge/Wise-faizulz13-163300?style=for-the-badge&logo=wise&logoColor=white)](https://wise.com/pay/me/faizulz13)
-[![License](https://img.shields.io/badge/license-Custom%20Amateur%20Radio-purple.svg?style=for-the-badge)](file:///home/x/ESPHamClock/LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-purple.svg?style=for-the-badge)](file:///home/x/ESPHamClock/LICENSE)
 
 <br/>
 
@@ -765,9 +765,9 @@ Your sponsorship helps cover server costs for the **Open HamClock Backend (OHB)*
 
 ## 📄 License & Acknowledgments
 
-- **Original Creator**: Elwood Downey, WB0OEW (Clear Sky Institute).
-- **Backend & Community Maintenance**: The Open HamClock (OHB) amateur radio community.
-- **License**: Custom Amateur Radio Non-Commercial License (see [`LICENSE`](file:///home/x/ESPHamClock/LICENSE)).
+- **Original Creator**: Elwood Downey, WB0OEW, SK (Clear Sky Institute).
+- **Backend & Community Maintenance**: 9M2PJU & The Open HamClock (OHB) amateur radio community.
+- **License**: MIT License (see [`LICENSE`](file:///home/x/ESPHamClock/LICENSE)).
 
 <div align="center">
 

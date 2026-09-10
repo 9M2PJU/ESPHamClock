@@ -127,11 +127,20 @@ chmod +x HamClock-4.32-x86_64.AppImage
 
 ---
 
-## 3. Windows Installation (WSL2 & Docker)
+## 3. Windows Installation (Standalone .exe, WSL2 & Docker)
 
 See the full [Windows Installation Guide](WINDOWS.md) for complete instructions.
 
-### 1-Click Automated PowerShell Installer:
+### Option A: Pre-Compiled Standalone Windows Executable (.exe) [No WSL/Docker Needed]
+Download the standalone executable directly from [GitHub Releases](https://github.com/9M2PJU/9M2PJU-HamClock-Installer/releases/latest):
+- `HamClock-4.32-windows-800x480.exe`
+- `HamClock-4.32-windows-1600x960.exe`
+- `HamClock-4.32-windows-2400x1440.exe`
+- `HamClock-4.32-windows-3200x1920.exe`
+
+Run the executable and open `http://localhost:8081/live.html` in your web browser.
+
+### Option B: 1-Click Automated PowerShell Installer:
 ```powershell
 irm https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/scripts/install.ps1 | iex
 ```
