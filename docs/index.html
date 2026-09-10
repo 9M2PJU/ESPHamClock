@@ -7,7 +7,7 @@
   <!-- Primary Meta Tags & SEO -->
   <title>9M2PJU HamClock Installer | Open HamClock (OHB Edition) - Space Weather & Amateur Radio Dashboard</title>
   <meta name="title" content="9M2PJU HamClock Installer | Open HamClock (OHB Edition)">
-  <meta name="description" content="The definitive open-source installer and telemetry suite for HamClock (v4.29) with Open HamClock Backend (OHB), multi-architecture Docker images, native Linux/RPi/macOS one-liners, VOACAP propagation modeling, and Rotator/CAT Radio control.">
+  <meta name="description" content="The definitive open-source installer and telemetry suite for HamClock (v4.32) with Open HamClock Backend (OHB), multi-architecture Docker images, native Linux/RPi/macOS one-liners, VOACAP propagation modeling, and Rotator/CAT Radio control.">
   <meta name="keywords" content="HamClock, ESPHamClock, Open HamClock, OHB, 9M2PJU, amateur radio, ham radio, space weather, solar flux, VOACAP, radio propagation, rotctld, rigctld, flrig, raspberry pi hamclock, docker hamclock, sat tracking, ADIF broadcast">
   <meta name="author" content="9M2PJU">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -23,7 +23,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://hamclock.hamradio.my/">
   <meta property="og:title" content="9M2PJU HamClock Installer | Open HamClock (OHB Edition)">
-  <meta property="og:description" content="One-line install for HamClock v4.29 with Open HamClock Backend (OHB), multi-architecture Docker, VOACAP propagation, satellite orbits, rig CAT, and rotator automation.">
+  <meta property="og:description" content="One-line install for HamClock v4.32 with Open HamClock Backend (OHB), multi-architecture Docker, VOACAP propagation, satellite orbits, rig CAT, and rotator automation.">
   <meta property="og:image" content="https://hamclock.hamradio.my/images/9m2pju-hamclock-ohb.png">
   <meta property="og:image:secure_url" content="https://hamclock.hamradio.my/images/9m2pju-hamclock-ohb.png">
   <meta property="og:image:type" content="image/png">
@@ -37,7 +37,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://hamclock.hamradio.my/">
   <meta name="twitter:title" content="9M2PJU HamClock Installer | Open HamClock (OHB Edition)">
-  <meta name="twitter:description" content="One-line install for HamClock v4.29 with Open HamClock Backend (OHB), multi-architecture Docker, VOACAP propagation, satellite orbits, rig CAT, and rotator automation.">
+  <meta name="twitter:description" content="One-line install for HamClock v4.32 with Open HamClock Backend (OHB), multi-architecture Docker, VOACAP propagation, satellite orbits, rig CAT, and rotator automation.">
   <meta name="twitter:image" content="https://hamclock.hamradio.my/images/9m2pju-hamclock-ohb.png">
   <meta name="twitter:image:alt" content="9M2PJU HamClock Space Weather & Telemetry Dashboard">
   
@@ -52,7 +52,7 @@
         "operatingSystem": "Android, Linux, Raspberry Pi OS, macOS, FreeBSD, Windows, Docker",
         "applicationCategory": "UtilitiesApplication",
         "applicationSubCategory": "Amateur Radio Space Weather & Propagation Dashboard",
-        "softwareVersion": "4.29",
+        "softwareVersion": "4.32",
         "offers": {
           "@type": "Offer",
           "price": "0",
@@ -602,7 +602,7 @@
     <div class="container nav-wrap">
       <div class="brand">
         <span>⏰ HamClock</span>
-        <span class="brand-badge">OHB v4.29</span>
+        <span class="brand-badge">OHB v4.32</span>
       </div>
       <ul class="nav-links">
         <li><a href="#install">Install</a></li>
@@ -621,7 +621,7 @@
     <div class="container">
       <div class="hero-badges">
         <span class="badge badge-ohb">🌐 Open HamClock Backend (OHB)</span>
-        <span class="badge badge-v429">⚡ Version 4.29 Ready</span>
+        <span class="badge badge-v429">⚡ Version 4.32 Ready</span>
         <span class="badge" style="background: rgba(61, 220, 132, 0.15); color: #3DDC84; border: 1px solid rgba(61, 220, 132, 0.4);">📱 Native Android App (.apk)</span>
       </div>
 
@@ -863,9 +863,9 @@
       android: "pkg update -y && pkg install -y curl && bash -c \"$(curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/termux/install.sh)\"",
       aur: "yay -S hamclock-git\n# Launch with resolution:\nhamclock -r 1600x960",
       snap: "sudo snap install hamclock\n# Launch with resolution:\nhamclock -r 1600x960",
-      deb: "sudo dpkg -i hamclock_4.29-1_amd64.deb\n# Launch with resolution:\nhamclock -r 1600x960",
-      rpm: "sudo rpm -Uvh hamclock-4.29-1.x86_64.rpm\n# Launch with resolution:\nhamclock -r 1600x960",
-      appimage: "chmod +x HamClock-4.29-x86_64.AppImage\n./HamClock-4.29-x86_64.AppImage -r 1600x960",
+      deb: "sudo dpkg -i hamclock_4.32-1_amd64.deb\n# Launch with resolution:\nhamclock -r 1600x960",
+      rpm: "sudo rpm -Uvh hamclock-4.32-1.x86_64.rpm\n# Launch with resolution:\nhamclock -r 1600x960",
+      appimage: "chmod +x HamClock-4.32-x86_64.AppImage\n./HamClock-4.32-x86_64.AppImage -r 1600x960",
       docker: "curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install-docker.sh | bash\n# Or non-interactive: curl -fsSL https://raw.githubusercontent.com/9M2PJU/9M2PJU-HamClock-Installer/main/install-docker.sh | RESOLUTION=1600x960 bash"
     };
 
@@ -879,7 +879,7 @@
       aur: "🏹 <strong>Arch Linux (AUR):</strong> Installs all resolution binaries simultaneously. Launch with <code>hamclock -r 1600x960</code>, <code>hamclock-1600x960</code>, or set <code>HAMCLOCK_RES=1600x960</code>.",
       deb: "🐧 <strong>Debian / Ubuntu / Raspberry Pi:</strong> All resolutions pre-packaged. Launch with <code>hamclock -r 1600x960</code> (or <code>800x480</code>, <code>2400x1440</code>, <code>3200x1920</code>).",
       rpm: "🎩 <strong>Fedora / RHEL / openSUSE:</strong> All resolutions pre-packaged. Launch with <code>hamclock -r 1600x960</code> or <code>hamclock-1600x960</code>.",
-      appimage: "📦 <strong>Universal Linux AppImage:</strong> Portable executable containing all resolutions. Launch with <code>./HamClock-4.29-x86_64.AppImage -r 1600x960</code>.",
+      appimage: "📦 <strong>Universal Linux AppImage:</strong> Portable executable containing all resolutions. Launch with <code>./HamClock-4.32-x86_64.AppImage -r 1600x960</code>.",
       snap: "📦 <strong>Snapcraft:</strong> Sandboxed auto-updating package. Launch with <code>hamclock -r 1600x960</code>."
     };
 

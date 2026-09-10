@@ -3,6 +3,8 @@
 
 
 #include "HamClock.h"
+#include "iota.h"
+#include "xota.h"
 
 
 
@@ -23,7 +25,10 @@ bool crackClusterSpot (char line[], DXSpot &spot)
     spot = {};
 
     // DX de KD0AA:     18100.0  JR1FYS       FT8 LOUD in FL!                2156Z EL98
-    if (sscanf (line, "DX de %11[^ :]: %f %11s", spot.rx_call, &spot.kHz, spot.tx_call) != 3) {
+    // N.B. match the "DX de " label case-insensitively: some AR-Cluster nodes (eg k1ttt.net)
+    // print it as "DX de" for live pushed spots but "Dx de" for a show/dx backlog reply
+    if (strncasecmp (line, "dx de ", 6) != 0
+                        || sscanf (line+6, "%11[^ :]: %f %11s", spot.rx_call, &spot.kHz, spot.tx_call) != 3) {
         // already logged
         return (false);
     }
@@ -47,6 +52,13 @@ bool crackClusterSpot (char line[], DXSpot &spot)
 
     // spot does not include mode so try to set based on freq
     quietStrncpy (spot.mode, findHamMode (spot.kHz), sizeof(spot.mode));
+
+    // comment is whatever text sits between the callsign and the time field at
+    // line[70]; scan it for a recognizable IOTA group reference, and separately for
+    // any of the "extra" xOTA programs (WCA/ARLHS/ILLW/SIOTA/WAB/WWBOTA) -- see xota.h
+    // for why that one needs its own, stricter, label-anchored scan
+    findIOTARef (line, spot.iota, sizeof(spot.iota));
+    findXOTARef (line, spot.xota_org, sizeof(spot.xota_org), spot.xota_ref, sizeof(spot.xota_ref));
 
     // accommodate future from roundoff
     if (spot.spotted > now) {

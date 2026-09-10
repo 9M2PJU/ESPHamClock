@@ -1,5 +1,5 @@
 Name:           hamclock
-Version:        4.29
+Version:        4.32
 Release:        1%{?dist}
 Summary:        Portable space weather, propagation and telemetry dashboard for radio amateurs
 License:        Custom Amateur Radio License
@@ -51,5 +51,5 @@ fi
 /usr/share/man/man1/hamclock.1.gz
 
 %changelog
-* Sun Aug 16 2026 9M2PJU <9m2pju@hamradio.my> - 4.29-1
+* Sun Aug 16 2026 9M2PJU <9m2pju@hamradio.my> - 4.32-1
 - Initial RPM release with Open HamClock Backend (OHB) and multi-resolution support.

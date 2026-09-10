@@ -385,22 +385,71 @@ static const uint8_t nv_sizes[NV_N] = {
     4,                          // NV_PANE2ROTSET_HI
     4,                          // NV_PANE3ROTSET_HI
 
-    // 255 -- appended so all prior EEPROM addresses remain unchanged
+    // 255
     NV_MESHWATCHLIST_LEN,       // NV_MESHWATCHLIST
 
-    // 256 -- appended so all prior EEPROM addresses remain unchanged
+    // 256
     NV_PIAWAREHOST_LEN,         // NV_PIAWAREHOST
 
-    // 257 -- appended so all prior EEPROM addresses remain unchanged
+    // 257
     1,                          // NV_ONTA_MODES
     4,                          // NV_ONTA_BANDS
 
-    // 258 -- appended so all prior EEPROM addresses remain unchanged
+    // 258 
     1,                          // NV_CTYBORDERS_ON
 
-    // 259 -- appended so all prior EEPROM addresses remain unchanged
+    // 259
     2,                          // NV_BORDERCOLOR
     2,                          // NV_STATECOLOR
+
+    // 260
+    1,                          // NV_WEFAX_REGION
+    1,                          // NV_WEFAX_PRODUCT
+    1,                          // NV_WEFAX_ENABLE
+
+    // 261
+    1,                          // NV_STORM_SHOWPATH
+
+    // 262
+    1,                          // NV_MAINCLOCK_LOCAL
+
+    // 263
+    1,                          // NV_DXC_HIDEIOTA
+    1,                          // NV_DXC_MODES
+    4,                          // NV_DXC_BANDS
+    1,                          // NV_APRSON
+    NV_APRSHOST_LEN,            // NV_APRSHOST
+    2,                          // NV_APRSPORT
+    2,                          // NV_APRSRADIUS
+    2,                          // NV_APRSCATFILTER
+
+    // 264
+    NV_HAMALERT_PASSWD_LEN,     // NV_HAMALERT_PASSWD
+    NV_HAMALERT_LOGIN_LEN,      // NV_HAMALERT_LOGIN
+
+    // 265
+    1,                          // NV_MARINE_ON
+    1,                          // NV_MARINE_AUTOPOP
+    2,                          // NV_MARINE_RADIUS
+
+    // 266
+    1,                          // NV_FIREWX_ON
+    1,                          // NV_FIREWX_AUTOPOP
+    2,                          // NV_FIREWX_RADIUS
+
+    // 267
+    1,                          // NV_QUAKE_ON
+    1,                          // NV_QUAKE_AUTOPOP
+    2,                          // NV_QUAKE_RADIUS
+
+    // 268
+    1,                          // NV_FIRES_ON
+
+    // 269
+    4,                          // NV_ONTA_ORGMASK
+
+    // 270
+    1,                          // NV_PSK_SHOWONMAP
 
 };
 

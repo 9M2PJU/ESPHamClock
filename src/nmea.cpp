@@ -1,6 +1,3 @@
-/* Get lat/long and time from NMEA sentences.
- */
-
 #ifdef _WIN32
 
 /* Windows stub: NMEA uses POSIX termios serial APIs not available on

@@ -4,7 +4,7 @@
 
 ### *The Quintessential Space Weather, Radio Propagation & Telemetry Dashboard for Amateur Radio*
 
-[![HamClock Version](https://img.shields.io/badge/version-4.29-blue.svg?style=for-the-badge&logo=cplusplus)](file:///home/x/ESPHamClock/version.cpp)
+[![HamClock Version](https://img.shields.io/badge/version-4.32-blue.svg?style=for-the-badge&logo=cplusplus)](file:///home/x/ESPHamClock/version.cpp)
 [![Backend Status](https://img.shields.io/badge/backend-OHB%20(Open%20HamClock%20Backend)-brightgreen.svg?style=for-the-badge&logo=server)](https://ohb.hamclock.app)
 [![AUR package](https://img.shields.io/aur/version/hamclock-git?color=1793D1&label=AUR&logo=archlinux&style=for-the-badge)](https://aur.archlinux.org/packages/hamclock-git)
 [![Snap Store](https://img.shields.io/badge/Snap%20Store-Stable-E95420.svg?style=for-the-badge&logo=snapcraft&logoColor=white)](https://snapcraft.io/hamclock)
@@ -58,7 +58,7 @@ With Elwood Downey becoming **Silent Key (SK)**, the original Clear Sky Institut
 
 To ensure HamClock remains fully functional, reliable, and open for future generations of radio operators, an international collective of amateur radio enthusiasts developed the **Open HamClock Backend (OHB)**.
 
-### What Changed in Version 4.24+ (Current: 4.29)
+### What Changed in Version 4.24+ (Current: 4.32)
 
 - **Hard-Coded Community Backend**: HamClock now connects directly to `ohb.hamclock.app:80` by default.
 - **No Switching Scripts or DNS Redirection Required**: Older transitional scripts (`sudo ohb`, `sudo fix-hosts`, `sudo csi`) and manual `/etc/hosts` modifications are no longer required.
@@ -73,12 +73,14 @@ To ensure HamClock remains fully functional, reliable, and open for future gener
 
 | Subsystem | Capabilities & Integrations |
 | :--- | :--- |
-| **☀️ Space Weather** | Live Solar Flux Index (SFI), Sunspot Number (SSN), Planetary Kp & Ap indices, X-ray solar flare flux, solar wind velocity & density, interplanetary magnetic field ($B_z$ / $B_t$), NOAA alerts, and real-time Solar Dynamics Observatory (SDO) EUV imagery. |
-| **📻 Propagation & Bands** | VOACAP point-to-point HF propagation prediction engine, real-time 80m–10m band condition matrix, Take-Off Angle (TOA) adjustments, and live synchronized NCDXF/IARU international beacon monitoring. |
-| **🗺️ Cartography & Grayline** | High-resolution Mercator, Robinson, and Azimuthal (Great Circle / beam heading) projections centered on your DE (QTH). Live day/night terminator (grayline) mapping, Maidenhead 6-character grid overlays, CQ zones, and ITU zones. |
-| **📡 DX Cluster & Digital Modes** | Live DX cluster telnet/web ingestion, PSK Reporter FT8/FT4/CW real-time spot pins on the globe, callsign DXCC prefix database lookup, and custom callsign watchlists with audio/visual alerts. |
+| **☀️ Space Weather** | Live Solar Flux Index (SFI), Sunspot Number (SSN), Planetary Kp & Ap indices, NOAA GOES-18 X-ray solar flare flux, solar wind velocity & density, interplanetary magnetic field ($B_z$ / $B_t$), NOAA alerts, and real-time Solar Dynamics Observatory (SDO) EUV imagery. |
+| **📻 Propagation & Bands** | VOACAP point-to-point HF propagation prediction engine, real-time 2200m–10m & 630m band condition matrix, Take-Off Angle (TOA) adjustments, live band activity pane, and live synchronized NCDXF/IARU international beacon monitoring. |
+| **🗺️ Cartography & Grayline** | High-resolution Mercator, Robinson, and Azimuthal (Great Circle / beam heading) projections centered on your DE (QTH). Live day/night terminator (grayline) mapping, Maidenhead 6-character grid overlays, CQ zones, ITU zones, and Country/State borders toggle badge. |
+| **📡 DX Cluster, APRS & Alerts** | Live DX cluster telnet/web ingestion (IOTA, WWBOTA, POTA, SOTA, ONTA), nearby APRS tracking, High Altitude Balloon (HAB) telemetry, HamAlert.org integration, PSK Reporter FT8/FT4/CW real-time spot pins, and custom callsign watchlists with audio/visual alerts. |
+| **🚨 Emergency & Environmental** | Real-time global active wildfire mapping, Fire Weather (FireWx) warnings, NWS Marine Warnings, live USGS Earthquake tracking, and Weather Fax (WeFax) charts. |
 | **🛰️ Satellites, EME & Rotators** | Orbit calculation via Plan-13 algorithm for ISS and amateur satellites, next pass predictions, Doppler shift estimation, Earth-Moon-Earth (EME) mutual visibility windows, and automated Az/El antenna rotor/gimbal control (rotctld, Yaesu, Easycomm). |
 | **📜 Logbook & Rig Control** | Real-time ADIF log ingestion from WSJT-X, N1MM Logger+, and standard loggers; on-air QSO pins plotted live; Flrig and rigctld CAT transceiver tracking. |
+| **⌨️ Touch & UI Usability** | On-screen modal virtual keyboard for editing station settings, callsigns, and Wi-Fi on touchscreens; QR code modal generation for quick RSS news reading and local Wi-Fi sharing. |
 | **⏱️ Clocks & Geolocation** | Dual DE/DX local timezones, UTC precision display, sub-second NTP synchronization, hardware NMEA GPS & `gpsd` daemon support, IP geolocation, and stopwatch/timer controls. |
 | **🌐 Built-in Web Server** | Interactive WebSocket remote mirror (port `8081`) for touch/click browser control, read-only monitor (port `8082`), and RESTful HTTP API (port `8080`) for screenshots and automation. |
 
@@ -253,25 +255,25 @@ paru -S hamclock-git
 ### 🐧 Debian / Ubuntu / Raspberry Pi OS (`.deb`)
 ```bash
 # Download and install for your architecture
-sudo dpkg -i hamclock_4.29-1_amd64.deb    # x86_64 PCs
-sudo dpkg -i hamclock_4.29-1_arm64.deb    # Raspberry Pi 4/5 / 64-bit ARM
-sudo dpkg -i hamclock_4.29-1_armhf.deb    # Raspberry Pi 2/3 / 32-bit Raspbian
+sudo dpkg -i hamclock_4.32-1_amd64.deb    # x86_64 PCs
+sudo dpkg -i hamclock_4.32-1_arm64.deb    # Raspberry Pi 4/5 / 64-bit ARM
+sudo dpkg -i hamclock_4.32-1_armhf.deb    # Raspberry Pi 2/3 / 32-bit Raspbian
 sudo apt-get install -f                   # Resolve any missing dependencies
 ```
 
 ### 🎩 Fedora / RHEL / openSUSE (`.rpm`)
 ```bash
-sudo rpm -Uvh hamclock-4.29-1.x86_64.rpm  # x86_64
-sudo rpm -Uvh hamclock-4.29-1.aarch64.rpm # ARM64
+sudo rpm -Uvh hamclock-4.32-1.x86_64.rpm  # x86_64
+sudo rpm -Uvh hamclock-4.32-1.aarch64.rpm # ARM64
 ```
 
 ### 🚀 Universal AppImage (Single-File Executable)
 ```bash
-chmod +x HamClock-4.29-x86_64.AppImage
-./HamClock-4.29-x86_64.AppImage
+chmod +x HamClock-4.32-x86_64.AppImage
+./HamClock-4.32-x86_64.AppImage
 
 # Launch with custom resolution
-./HamClock-4.29-x86_64.AppImage -r 1600x960
+./HamClock-4.32-x86_64.AppImage -r 1600x960
 ```
 
 ---

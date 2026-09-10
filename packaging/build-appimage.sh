@@ -10,7 +10,7 @@
 set -e
 
 ARCH="${1:-x86_64}"
-VERSION="4.29"
+VERSION="4.32"
 OUT_DIR="${2:-./dist}"
 TOP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 

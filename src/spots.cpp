@@ -3,6 +3,40 @@
 
 #include "HamClock.h"
 
+#define IOTA_MARK_COLOR RGB565(150,250,255)     // matches ONTA_COLOR; box behind the "I" flags an IOTA ref
+#define IOTA_MARK_W     9                        // pixels reserved for the marker column, incl gap
+
+// letter + color for each "extra" xOTA program's marker -- see xota.h. Chosen to be visually
+// distinct from IOTA_MARK_COLOR above and from each other; avoids RA8875_RED (reserved for
+// watchlist hits elsewhere) and DXC_COLOR's pure green (dxcluster.cpp's own accent).
+typedef struct {
+    const char *org;
+    char letter;
+    uint16_t color;
+} XOTAMarker;
+static const XOTAMarker xota_markers[] = {
+    { "WCA",    'C', RGB565(255,215,0)   },     // gold
+    { "ARLHS",  'L', RGB565(100,170,255) },     // sky blue -- lighthouses
+    { "ILLW",   'L', RGB565(100,170,255) },     // "
+    { "SIOTA",  'O', RGB565(200,200,200) },     // light grey
+    { "WAB",    'W', RGB565(255,127,80)  },     // coral
+    { "WWBOTA", 'B', RGB565(150,150,60)  },     // olive/khaki
+};
+
+/* look up the marker letter+color for an xota_org value; returns NULL if not recognized
+ * (shouldn't happen since xota_org is only ever set by findXOTARef() using these same names,
+ * but a spot list is exactly the wrong place to let an unrecognized value crash anything).
+ */
+static const XOTAMarker *findXOTAMarker (const char *org)
+{
+    if (!org || !org[0])
+        return (NULL);
+    for (const XOTAMarker &m : xota_markers)
+        if (!strcmp (m.org, org))
+            return (&m);
+    return (NULL);
+}
+
 
 /* find list element, subject to possible filtering, that is closest to ll on the given end(s).
  * return whether found one within MAX_CSR_DIST.
@@ -196,11 +230,34 @@ void drawSpotOnList (const SBox &box, const DXSpot &spot, int row, uint16_t bg_c
     tft.setCursor (x, y);
     tft.print (line);
 
-    // add call
-    const int max_call = BOX_IS_PANE_0(box) ? MAX_SPOTCALL_LEN-3 : MAX_SPOTCALL_LEN-1;
+    // add call -- 2 chars narrower than before to make room for a fixed-width IOTA marker
+    // column, so the age field always starts in the same place whether or not a row has one
+    const int max_call = BOX_IS_PANE_0(box) ? MAX_SPOTCALL_LEN-5 : MAX_SPOTCALL_LEN-3;
     tft.setTextColor(RA8875_WHITE);
     snprintf (line, sizeof(line), " %-*.*s ", max_call, max_call, spot.tx_call);
     tft.print (line);
+
+    // reserve a small fixed-width column for a marker -- reserved on every row, drawn only
+    // when this spot's comment carried a recognized IOTA or "extra" xOTA (xota.h) reference,
+    // so the age field lines up in the same column either way instead of drifting into it (as
+    // a plain floating dot used to). full name/program doesn't fit here -- tap the row (see
+    // checkDXClusterTouch) to see it in a tooltip. user can hide the marker entirely (the
+    // Marker: Hide toggle in Age/Marker/Modes/Bands menu) while keeping the column reserved,
+    // so age still lines up whether or not markers are being shown.
+    // IOTA takes priority if a spot somehow matches both -- vanishingly unlikely in practice,
+    // not worth a two-letter marker to cover.
+    uint16_t call_end_x = tft.getCursorX();
+    const XOTAMarker *xm = spot.iota[0] ? NULL : findXOTAMarker (spot.xota_org);
+    if ((spot.iota[0] || xm) && !dxcHideIOTA()) {
+        char letter = spot.iota[0] ? 'I' : xm->letter;
+        uint16_t mark_color = spot.iota[0] ? IOTA_MARK_COLOR : xm->color;
+        tft.fillRect (call_end_x, y-LISTING_OS, IOTA_MARK_W, h, mark_color);
+        tft.setTextColor (RA8875_BLACK);
+        tft.setCursor (call_end_x + 2, y);
+        tft.print (letter);
+        tft.setTextColor (RA8875_WHITE);
+    }
+    tft.setCursor (call_end_x + IOTA_MARK_W, y);
 
     // and finally age, width depending on pane
     time_t age = myNow() - spot.spotted;
@@ -219,11 +276,17 @@ void ditherLL (LatLong &ll)
 }
 
 
-/* draw the visible spots and scroll controls
+/* draw the visible spots and scroll controls.
+ * ctrl_box, if given, positions the scroll up/down controls independently of box -- needed
+ * by DX Cluster's optional filter-indicator row, which shifts box down to make the spot rows
+ * line up under it while the scroll arrows (and their touch targets in checkDXClusterTouch)
+ * must stay put in the title bar. defaults to box itself, which is everyone else's case.
  */
 void drawVisibleSpots (WatchListId wl_id, const DXSpot *spots, const ScrollState &ss, const SBox &box,
-int16_t app_color)
+int16_t app_color, const SBox *ctrl_box)
 {
+    const SBox &cb = ctrl_box ? *ctrl_box : box;
+
     // show vis spots and note if any would be red above and below
     bool any_older = false;
     bool any_newer = false;
@@ -262,8 +325,8 @@ int16_t app_color)
                 ((scrollTopToBottom() && any_newer) || (!scrollTopToBottom() && any_older)))
         up_color = RA8875_RED;
 
-    ss.drawScrollUpControl (box, up_color, app_color);
-    ss.drawScrollDownControl (box, dw_color, app_color);
+    ss.drawScrollUpControl (cb, up_color, app_color);
+    ss.drawScrollDownControl (cb, dw_color, app_color);
 }
 
 /* qsort-style function to compare two DXSpot by freq

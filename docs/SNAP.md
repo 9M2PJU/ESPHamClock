@@ -44,4 +44,4 @@ snapcraft export-login --snaps=hamclock --channels=edge,beta,candidate,stable sn
 3. Name: `SNAPCRAFT_STORE_CREDENTIALS`
 4. Value: Paste the contents of `snapcraft.token`.
 
-Every new release tag (e.g. `v4.29`) pushed to GitHub will automatically compile multi-architecture snaps (`amd64`, `arm64`, `armhf`) and release them to the Snap Store `stable` channel!
+Every new release tag (e.g. `v4.32`) pushed to GitHub will automatically compile multi-architecture snaps (`amd64`, `arm64`, `armhf`) and release them to the Snap Store `stable` channel!

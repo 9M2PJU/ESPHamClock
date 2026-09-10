@@ -3,12 +3,12 @@
 **Repository:** `https://github.com/9M2PJU/9M2PJU-HamClock-Installer`  
 **Maintainer:** 9M2PJU (`9m2pju@hamradio.my` | [HamRadio.my](https://hamradio.my))  
 **Backend:** Open HamClock Backend (`ohb.hamclock.app:80`)  
-**Version:** `4.29`
+**Version:** `4.32`
 
 ---
 
 ## 1. Project Overview & Architecture
-This project is the definitive open-source installer, multi-platform packaging suite, and web deployment for **HamClock (v4.29)**, configured natively to connect with the **Open HamClock Backend (OHB)** without `/etc/hosts` workarounds.
+This project is the definitive open-source installer, multi-platform packaging suite, and web deployment for **HamClock (v4.32)**, configured natively to connect with the **Open HamClock Backend (OHB)** without `/etc/hosts` workarounds.
 
 ### Supported Platforms & Targets:
 - **1-Line Universal Installer (`install.sh`)**: Linux (Debian, Ubuntu, RPi OS, Arch, Fedora), macOS (Intel/Apple Silicon), and FreeBSD.
@@ -102,7 +102,7 @@ This project is the definitive open-source installer, multi-platform packaging s
 - Split headless systemd service into its own section (#12) separate from desktop autostart (#11).
 
 ### M. Snap Package (Existing, Verified) — Verified 2026-08-22
-- Snap package `hamclock` (v4.29, publisher `faizul`) installed and verified on CachyOS.
+- Snap package `hamclock` (v4.32, publisher `faizul`) installed and verified on CachyOS.
 - Built only with `1600x960` target (binary is `hamclock-1600x960`).
 - Command at `/var/lib/snapd/snap/bin/hamclock` (on PATH after `hash -r` or new terminal).
 - Must run from graphical session (X11 app, needs `DISPLAY` set).

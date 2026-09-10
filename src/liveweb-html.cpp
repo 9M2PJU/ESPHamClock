@@ -28,6 +28,74 @@ char live_html[] =  R"_raw_html_(
             touch-action: pinch-zoom; /* allow both 1-finger moves and multi-touch p-z */
         }
 
+        /* overlay used to show an embedded page in-app (e.g. ADS-B Exchange), instead of a
+         * new tab. covers most of the canvas but leaves a visible margin so it's clearly a
+         * popup, not a navigation away from HamClock. */
+        #embed-overlay {
+            display: none;              /* toggled to flex by showEmbed() */
+            position: fixed;
+            left: 3%; top: 3%; right: 3%; bottom: 3%;
+            flex-direction: column;
+            background: #111;
+            border: 1px solid #888;
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
+            z-index: 1000;
+        }
+
+        #embed-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: #222;
+            color: #eee;
+            font-family: sans-serif;
+            font-size: 14px;
+            border-bottom: 1px solid #888;
+        }
+
+        #embed-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        #embed-header button {
+            margin-left: 8px;
+            background: #333;
+            color: #eee;
+            border: 1px solid #888;
+            border-radius: 3px;
+            padding: 4px 10px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        #embed-header button:hover {
+            background: #444;
+        }
+
+        #embed-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: white;
+        }
+
+        /* shown if the embedded site appears not to have loaded (likely blocked by the
+         * target's own framing policy) -- points the user at the manual fallback button
+         * instead of silently leaving a blank frame. */
+        #embed-fallback-note {
+            display: none;
+            padding: 6px 10px;
+            background: #442;
+            color: #fd8;
+            font-family: sans-serif;
+            font-size: 12px;
+            border-bottom: 1px solid #888;
+        }
+
     </style>
 
     <script>
@@ -35,6 +103,7 @@ char live_html[] =  R"_raw_html_(
         // config
         const UPDATE_MS = 100;          // update interval
         const MOUSE_JITTER = 5;         // allow this much mouse motion for a touch
+        const LONGPRESS_MS = 500;       // press and hold duration in ms to trigger tooltip
         const APP_W = 800;              // app coord system width
         const nonan_chars =             // supported non-alnum chars
           ['Tab', 'Enter', 'Space', 'Escape', 'Backspace', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'ArrowRight'];
@@ -51,6 +120,8 @@ char live_html[] =  R"_raw_html_(
         var pointerdown_x = 0;          // location of pointerdown event
         var pointerdown_y = 0;          // location of pointerdown event
         var pointermove_ms = 0;         // Date.now when pointermove event
+        var longpress_timer = null;     // timer for long-press detection
+        var longpress_fired = false;    // whether long-press triggered tooltip
         var want_fs, tried_fs;          // whether user wants full screen and has succeeded once
         var wsclose_reload = 1;         // whether to reload if lose ws connection
         var cvs, ctx;                   // handy
@@ -244,8 +315,9 @@ char live_html[] =  R"_raw_html_(
                 return;
             }
             
-            // package up and send
-            var msg = 'set_char?char=' + k + '&mod=';
+            // package up and send: single characters sent as 0xHEX so symbols (&, =, #, +, %, etc) don't collide with URL query syntax
+            var char_val = (k.length == 1) ? ('0x' + k.charCodeAt(0).toString(16).toUpperCase()) : k;
+            var msg = 'set_char?char=' + char_val + '&mod=';
             if (c)
                 msg += 'C';
             if (s)
@@ -275,11 +347,28 @@ char live_html[] =  R"_raw_html_(
                 return;
             }
 
+            // Escape key closes embed overlay if open
+            if (key === "Escape") {
+                var overlay = document.getElementById ('embed-overlay');
+                if (overlay && overlay.style.display !== 'none') {
+                    hideEmbed();
+                    event.preventDefault();
+                    return;
+                }
+            }
+
             // don't let browser see tab
             if (key === "Tab") {
                 if (event_verbose)
                     console.log ("stopping tab");
                 event.preventDefault();
+            }
+
+            // ignore Ctrl+V / Cmd+V here so browser's native 'paste' event handles it without typing a stray 'v'
+            if ((event.ctrlKey || event.metaKey) && (key === 'v' || key === 'V')) {
+                if (event_verbose)
+                    console.log ("delegating Ctrl+V to paste event");
+                return;
             }
 
             sendKey (key, event.ctrlKey, event.shiftKey);
@@ -349,6 +438,54 @@ char live_html[] =  R"_raw_html_(
                     console.log ('sendWSMsg: ' + msg);
                 ws.send (msg);
             }
+        }
+
+        // show the given url in the in-page embed overlay instead of a new tab.
+        //
+        // N.B. cross-origin iframes give JS no reliable way to detect whether the target site
+        // actually rendered or silently refused via X-Frame-Options/CSP frame-ancestors -- we
+        // can't inspect contentDocument across origins, and a refused frame still fires 'load'
+        // in most browsers. So this doesn't try to auto-detect failure and auto-redirect: an
+        // automatic window.open() from a timer callback is a non-user-gesture popup anyway and
+        // gets blocked by the browser's popup blocker in practice. Instead: the "Open in new
+        // tab" button is always visible up front, and a one-time hint banner appears a few
+        // seconds in as a nudge in case the frame is sitting blank.
+        var embed_hint_timer = null;
+        function showEmbed (url) {
+            document.getElementById ('embed-frame').src = url;
+            document.getElementById ('embed-title').textContent = url;
+            document.getElementById ('embed-fallback-note').style.display = 'none';
+            document.getElementById ('embed-overlay').style.display = 'flex';
+
+            if (embed_hint_timer)
+                clearTimeout (embed_hint_timer);
+            embed_hint_timer = setTimeout (function() {
+                document.getElementById ('embed-fallback-note').style.display = 'block';
+            }, 4000);
+
+            var closeBtn = document.getElementById ('embed-close-btn');
+            if (closeBtn)
+                closeBtn.focus();
+            if (window.AndroidApp && window.AndroidApp.setEmbedVisible)
+                window.AndroidApp.setEmbedVisible(true);
+        }
+
+        function hideEmbed () {
+            document.getElementById ('embed-overlay').style.display = 'none';
+            document.getElementById ('embed-frame').src = 'about:blank';   // stop it running in bg
+            if (embed_hint_timer) {
+                clearTimeout (embed_hint_timer);
+                embed_hint_timer = null;
+            }
+            if (window.AndroidApp && window.AndroidApp.setEmbedVisible)
+                window.AndroidApp.setEmbedVisible(false);
+        }
+
+        // user gesture -- window.open() here is reliable, unlike from a timer callback
+        function embedOpenNewTab () {
+            var url = document.getElementById ('embed-frame').src;
+            window.open (url, "HamClockTab");
+            hideEmbed ();
         }
 
         // try once to engage full screen if desired.
@@ -436,6 +573,31 @@ char live_html[] =  R"_raw_html_(
                         }
                     }
 
+                    else if (e.data.substring(0,6) == 'embed ') {
+                        // show a url in an in-page overlay instead of a new tab
+                        var url = e.data.substring(6);
+                        console.log('embedding ' + url);
+                        showEmbed (url);
+                    }
+
+                    else if (e.data === 'paste') {
+                        if (navigator.clipboard && navigator.clipboard.readText) {
+                            navigator.clipboard.readText().then(text => {
+                                if (text)
+                                    pasteString(text);
+                            }).catch(err => {
+                                console.log("clipboard read denied: ", err);
+                                let text = prompt("Paste text here (Ctrl+V):", "");
+                                if (text)
+                                    pasteString(text);
+                            });
+                        } else {
+                            let text = prompt("Paste text here (Ctrl+V):", "");
+                            if (text)
+                                pasteString(text);
+                        }
+                    }
+
                     else if (e.data === 'Too many connections') {       // N.B. string must match liveweb.cpp
                         // close and don't reload
                         drawMsgOnce (e.data);
@@ -463,7 +625,14 @@ char live_html[] =  R"_raw_html_(
             ctx = cvs.getContext('2d', { alpha: false });       // faster w/o alpha
             ctx.translate(0.5, 0.5);                            // a tiny bit less blurry?
 
-            // pointerdown: record time and position
+            function cancelLongPress() {
+                if (longpress_timer !== null) {
+                    clearTimeout (longpress_timer);
+                    longpress_timer = null;
+                }
+            }
+
+            // pointerdown: record time and position, start long-press timer
             cvs.addEventListener ('pointerdown', function(event) {
                 // check if user wants to go full screen
                 checkFullScreen();
@@ -477,27 +646,56 @@ char live_html[] =  R"_raw_html_(
                     return;
                 }
 
+                cancelLongPress();
+                longpress_fired = false;
+
                 pointermove_ms = Date.now();
                 pointerdown_x = m.x;
                 pointerdown_y = m.y;
                 if (event_verbose)
                     console.log ('pointer down');
+
+                // start long-press timer for primary button/touch without modifiers
+                var mods = event.ctrlKey || event.metaKey;
+                if (event.button === 0 && !mods) {
+                    longpress_timer = setTimeout (function() {
+                        longpress_timer = null;
+                        longpress_fired = true;
+                        if (event_verbose)
+                            console.log ('long press at ' + m.x + ',' + m.y);
+                        // trigger tooltip / secondary tap (button 1)
+                        sendWSMsg ('set_touch?x=' + m.x + '&y=' + m.y + '&button=1');
+                    }, LONGPRESS_MS);
+                }
             });
 
-            // pointerleave: send illegal mouse location 
+            // pointerleave: cancel long-press and send illegal mouse location 
             cvs.addEventListener ('pointerleave', function(event) {
                 // all ours
                 event.preventDefault();
+                cancelLongPress();
 
                 // send location well outside app
                 sendWSMsg ('set_mouse?x=-1&y=-1');
 
             });
 
-            // pointerup: send set_touch
+            // pointercancel: cancel long-press
+            cvs.addEventListener ('pointercancel', function(event) {
+                event.preventDefault();
+                cancelLongPress();
+            });
+
+            // pointerup: send set_touch unless long-press already handled
             cvs.addEventListener ('pointerup', function(event) {
                 // all ours
                 event.preventDefault();
+                cancelLongPress();
+
+                if (longpress_fired) {
+                    longpress_fired = false;
+                    return;
+                }
 
                 // extract application coords
                 const m = getAppCoords (event);
@@ -524,6 +722,15 @@ char live_html[] =  R"_raw_html_(
                 sendWSMsg (msg);
             });
 
+            // helper to paste string into HamClock
+            function pasteString(str) {
+                if (!str) return;
+                for (let i = 0; i < str.length; i++) {
+                    sendKey(str[i]);
+                }
+            }
+            window.pasteString = pasteString;
+
             // suppress the browser's native right-click context menu on the canvas so a right-click
             // reaches pointerup above (as an 'other button' tap) instead of popping the OS/browser menu
             cvs.addEventListener ('contextmenu', function(event) {
@@ -536,14 +743,19 @@ char live_html[] =  R"_raw_html_(
                 // all ours
                 event.preventDefault();
 
+                // cancel long press if pointer moves beyond jitter
+                const m = getAppCoords (event);
+                if (longpress_timer !== null && m) {
+                    if (Math.abs(m.x-pointerdown_x) > MOUSE_JITTER || Math.abs(m.y-pointerdown_y) > MOUSE_JITTER)
+                        cancelLongPress();
+                }
+
                 // not crazy fast
                 let now = Date.now();
                 if (pointermove_ms + UPDATE_MS > now)
                     return;
                 pointermove_ms = now;
 
-                // extract application coords
-                const m = getAppCoords (event);
                 if (!m) {
                     console.log("pointermove: don't know app_scale yet");
                     return;
@@ -556,9 +768,7 @@ char live_html[] =  R"_raw_html_(
 
             document.addEventListener('paste', e => {
                 let str = e.clipboardData.getData('text/plain');
-                for (let i = 0; i < str.length; i++) {
-                    sendKey(str[i]);
-                }
+                pasteString(str);
             });
 
 
@@ -575,6 +785,19 @@ char live_html[] =  R"_raw_html_(
 
     <!-- page is a single canvas, size will be set based on hamclock build size -->
     <canvas id='hamclock-cvs'></canvas>
+
+    <!-- in-page overlay for embedded links (e.g. ADS-B badge), toggled by showEmbed()/hideEmbed() -->
+    <div id='embed-overlay'>
+        <div id='embed-header'>
+            <span id='embed-title'></span>
+            <button id='embed-open-btn' onclick='embedOpenNewTab()'>Open in new tab &#8599;</button>
+            <button id='embed-close-btn' onclick='hideEmbed()'>&#10005; Close</button>
+        </div>
+        <div id='embed-fallback-note'>
+            Taking a while to load? This site may not allow embedding -- try "Open in new tab" above.
+        </div>
+        <iframe id='embed-frame'></iframe>
+    </div>
 
 </body>
 </html> 

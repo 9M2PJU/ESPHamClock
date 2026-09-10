@@ -1,7 +1,7 @@
 name: hamclock
 title: 9M2PJU HamClock
 base: core24
-version: '4.29'
+version: '4.32'
 license: MIT
 summary: Space Weather, Propagation & Telemetry Dashboard
 description: |

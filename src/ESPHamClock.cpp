@@ -106,6 +106,17 @@ static RotMsg_t rot_msg = ROTM_RSSI;
 // WiFi touch control
 TouchType wifi_tt;
 SCoord wifi_tt_s;
+bool wifi_tt_live;                     // whether the pending wifi_tt came from a Live Web client,
+                                        // set alongside wifi_tt/wifi_tt_s by setLiveTouch() and
+                                        // consumed atomically with them below in checkTouch() --
+                                        // see isLiveWebTouch() in liveweb.cpp for why this can't
+                                        // just be re-derived from lastest_ws_touch_client at the
+                                        // time a badge handler happens to ask
+bool wifi_kb_live;                     // whether the pending keyboard char came from a Live Web client
+bool cur_touch_live;                   // whether the touch currently being dispatched by
+                                        // checkTouch() came from a Live Web client -- this is
+                                        // what isLiveWebTouch() reports; valid only while a touch
+                                        // is being handled (set at the top of checkTouch())
 
 // set up TFT display controller RA8875 instance on hardware SPI plus reset and chip select
 #define RA8875_RESET    16
@@ -181,8 +192,16 @@ static void showDefines(void)
         _PR_MAC(_IS_UNIX);
     #endif
 
+    #if defined(_IS_ANDROID)
+        _PR_MAC(_IS_ANDROID);
+    #endif
+
     #if defined(_IS_LINUX)
         _PR_MAC(_IS_LINUX);
+    #endif
+
+    #if defined(_IS_APPLE)
+        _PR_MAC(_IS_APPLE);
     #endif
 
     #if defined(_IS_FREEBSD)
@@ -235,6 +254,14 @@ static void showDefines(void)
 
     #if defined(NO_UPGRADE)
         _PR_MAC(NO_UPGRADE);
+    #endif
+
+    #if defined(NO_SYSTEM_CONTROLS)
+        _PR_MAC(NO_SYSTEM_CONTROLS);
+    #endif
+
+    #if defined(NO_HAMCLOCK_CONTROLS)
+        _PR_MAC(NO_HAMCLOCK_CONTROLS);
     #endif
 
     #if defined(_SUPPORT_KX3)
@@ -468,6 +495,62 @@ void setup()
         borders_btn_b.h = view_btn_b.h;
     }
 
+    // position WEFAX on-map badge in the same slot as the Borders badge, same convention.
+    // the two are never visible at once -- bordersBadgeVisible() requires CM_CLOUDS/CM_TERRAIN
+    // and wefaxBadgeVisible() requires CM_WX, and core_map can only be one value at a time --
+    // so sharing the slot avoids a permanent gap next to the View button when neither is showing.
+    {
+        const int gap = 4;
+        const int pad = 8;
+        selectFontStyle (LIGHT_FONT, FAST_FONT);
+        wefax_btn_b.x = view_btn_b.x + view_btn_b.w + gap;
+        wefax_btn_b.y = view_btn_b.y;
+        wefax_btn_b.w = getTextWidth ("WEFAX Off") + pad;
+        wefax_btn_b.h = view_btn_b.h;
+    }
+
+    // seed the Fires on-map badge just to the right of View. Unlike Borders/WEFAX it can be
+    // showing at the same time as Borders (both apply to Terrain/Clouds), so it can't share
+    // their fixed slot -- drawFiresButton() recomputes fires_btn_b.x every draw to float right
+    // of whichever of View/Borders is currently rightmost. This is just a harmless initial value.
+    {
+        const int gap = 4;
+        const int pad = 8;
+        selectFontStyle (LIGHT_FONT, FAST_FONT);
+        fires_btn_b.x = view_btn_b.x + view_btn_b.w + gap;
+        fires_btn_b.y = view_btn_b.y;
+        fires_btn_b.w = getTextWidth ("Fires Off") + pad;
+        fires_btn_b.h = view_btn_b.h;
+    }
+
+    // seed the ADS-B on-map badge just to the right of View, same convention as Fires: it can be
+    // showing alongside Borders/Fires (all apply to Clouds), so it can't share a fixed slot either --
+    // drawADSBBadge() recomputes adsbmap_btn_b.x every draw to float right of whichever of
+    // View/Borders/Fires is currently rightmost. This is just a harmless initial value.
+    {
+        const int gap = 4;
+        const int pad = 8;
+        selectFontStyle (LIGHT_FONT, FAST_FONT);
+        adsbmap_btn_b.x = view_btn_b.x + view_btn_b.w + gap;
+        adsbmap_btn_b.y = view_btn_b.y;
+        adsbmap_btn_b.w = getTextWidth ("ADS-B") + pad;
+        adsbmap_btn_b.h = view_btn_b.h;
+    }
+
+    // seed the Wind on-map badge just to the right of View, same convention: it can share the
+    // CM_WX row with WEFAX, so it can't take a fixed slot either -- drawWindButton() recomputes
+    // windmap_btn_b.x every draw to float right of WEFAX, or View when WEFAX isn't enabled. This
+    // is just a harmless initial value.
+    {
+        const int gap = 4;
+        const int pad = 8;
+        selectFontStyle (LIGHT_FONT, FAST_FONT);
+        windmap_btn_b.x = view_btn_b.x + view_btn_b.w + gap;
+        windmap_btn_b.y = view_btn_b.y;
+        windmap_btn_b.w = getTextWidth ("Wind") + pad;
+        windmap_btn_b.h = view_btn_b.h;
+    }
+
     // redefine callsign for main screen
     cs_info.box.x = 0;
     cs_info.box.y = 0;
@@ -621,7 +704,12 @@ void setup()
     rss_bnr_b.h = 68;
     NVReadUInt8 (NV_RSS_ON, &rss_on);
     initLightning();
+    initFires();
     initStorms();
+    initMarineWarnings();
+    initFireWx();
+    initQuakes();
+    initWefax();
     if (!NVReadUInt8 (NV_RSS_INTERVAL, &rss_interval) || rss_interval < RSS_MIN_INT) {
         rss_interval = RSS_DEF_INT;
         NVWriteUInt8 (NV_RSS_INTERVAL, rss_interval);
@@ -683,6 +771,9 @@ void loop()
     drawFireworks();                    // only new years midnight
     updateSatPass ();                   // just for the satellite LED
     checkDXCluster ();                  // collect new spots if running
+    checkHamAlert ();                   // collect new alerts if running
+    checkAPRSCluster ();                // collect new APRS traffic if running
+    checkEclipsePopupTimeout ();        // auto-dismiss the eclipse pane's detail popup, if up
 
     // update stopwatch exclusively, if active
     if (!runStopwatch()) {
@@ -839,6 +930,7 @@ void initScreen()
     drawUptime(true);
     drawScreenLock();
     drawMOTDIcon();
+    drawUserGuideIcon();
     drawDemoRunner();
 
     // always close so it will restart if open in any pane
@@ -857,11 +949,17 @@ static void checkTouch()
 
     // check for remote and local touch
     if (wifi_tt != TT_NONE) {
-        // save and reset remote touch.
+        // save and reset remote touch, along with whether it came from a Live Web client --
+        // captured here in lockstep with wifi_tt/wifi_tt_s themselves rather than queried later
+        // from lastest_ws_touch_client, which a concurrent Live Web client poll can otherwise
+        // clear out from under a badge handler (eg adsbBadgeClicked()) before it gets a chance
+        // to ask -- see isLiveWebTouch() in liveweb.cpp.
         // N.B. remote touches never turn on brightness
         s = wifi_tt_s;
         tt = wifi_tt;
         wifi_tt = TT_NONE;
+        cur_touch_live = wifi_tt_live;
+        wifi_tt_live = false;
     } else {
         // check tap
         tt = readCalTouch (s);
@@ -874,6 +972,7 @@ static void checkTouch()
             drainTouch();
             return;
         }
+        cur_touch_live = false;
     }
 
     // check lock
@@ -901,12 +1000,29 @@ static void checkTouch()
         NVWriteUInt8 (NV_CTYBORDERS_ON, borders_on);
         initEarthMap();
         tft.drawPR();
+    } else if (wefaxBadgeVisible() && inBox (s, wefax_btn_b)) {
+        // runWefaxViewer() blocks until the user closes it, and restores the map on the way out
+        runWefaxViewer();
+    } else if (firesBadgeVisible() && inBox (s, fires_btn_b)) {
+        fires_on = !fires_on;
+        NVWriteUInt8 (NV_FIRES_ON, fires_on);
+        if (fires_on)
+            updateFires();          // fetch right away instead of waiting for the next poll
+        drawFiresButton();
+        drawFiresOnMap();
+        tft.drawPR();
+    } else if (adsbBadgeVisible() && inBox (s, adsbmap_btn_b)) {
+        adsbBadgeClicked();
+    } else if (windBadgeVisible() && inBox (s, windmap_btn_b)) {
+        windBadgeClicked();
     } else if (checkSatMapTouch (s)) {
         // set showing sat in DX box
         dx_info_for_sat = true;
         drawSatPass();
     } else if (checkPlanetMapTouch (s)) {
         // handled entirely within checkPlanetMapTouch
+    } else if (checkQuakeMapTouch (s)) {
+        // handled entirely within checkQuakeMapTouch
     } else if (!overViewBtn(s, DX_R) && s2ll (s, ll)) {
         // tapped map: set flag to run popup after map finishes or set newDX here if special-tap
         if (names_on)
@@ -932,6 +1048,7 @@ static void checkTouch()
             scheduleNewPlot(PLOT_CH_MOON);
             scheduleNewPlot(PLOT_CH_SDO);
             scheduleNewPlot(PLOT_CH_BC);
+            scheduleNewPlot(PLOT_CH_ECLIPSE);
             drawDEInfo();
         }
     } else if (!SHOWING_PANE_0() && !dx_info_for_sat && inBox (s, dx_tz.box)) {
@@ -1124,10 +1241,12 @@ void newDE (LatLong &ll, const char grid[MAID_CHARLEN])
     scheduleNewPlot(PLOT_CH_MOON);
     scheduleNewPlot(PLOT_CH_SDO);
     scheduleNewPlot(PLOT_CH_BC);
+    scheduleNewPlot(PLOT_CH_ECLIPSE);
     scheduleNewPlot(PLOT_CH_PSK);
     scheduleNewPlot(PLOT_CH_DEWX);
     scheduleNewCoreMap(core_map);
     sendDXClusterDELLGrid();
+    sendAPRSClusterNewDE();
     if (setNewSatCircumstance())
         drawSatPass();
 
@@ -1761,18 +1880,24 @@ void drawAllSymbols()
         drawDEAPMarker();
     drawOnTheAirSpotsOnMap();
     drawDXClusterSpotsOnMap();
+    drawHamAlertSpotsOnMap();
     drawADIFSpotsOnMap();
     drawDXPedsOnMap();
     drawHamsatOnMap();
     drawMeshtasticOnMap();
     drawPlanetsOnMap();
     drawLaunchesOnMap();
+    drawBalloonsOnMap();
     drawActiveNetsOnMap();
     drawDEMarker(false);
     drawDXMarker(false);
     drawFarthestPSKSpots();
     drawLightningOnMap();
+    drawFiresOnMap();
     drawStormsOnMap();
+    drawMarineWarningsOnMap();
+    drawFireWxOnMap();
+    drawQuakesOnMap();
     drawSatPathAndFoot();
     drawSanta ();
     drawEnterprise ();
@@ -1967,8 +2092,12 @@ void drawDEFormatMenu()
         PlotPane pp = findPaneForChoice (pc);
         bool available = plotChoiceIsAvailable(pc) && (pp == PANE_NONE || pp == PANE_0);
         MenuFieldType type = available ? MENU_AL1OFN : MENU_IGNORE;
+        // this list is a tight, auto-width-to-longest-label column shared with short names like
+        // "SSN" and "Kp" -- "Nearby APRS" is fine everywhere else (eg the normal pane picker) but
+        // is disproportionately long here, so abbreviate just for this one menu
+        const char *pc_label = (pc == PLOT_CH_APRSCLUSTER) ? "APRS" : plot_names[pc];
         mitems[N_DEFMT_CORE+n_menu_ch] = {
-            type, !!(plot_rotset[PANE_0] & PLOTBIT(pc)), 3, Mi, plot_names[pc], 0
+            type, !!(plot_rotset[PANE_0] & PLOTBIT(pc)), 3, Mi, pc_label, 0
         };
         n_menu_ch++;
     }
@@ -1983,7 +2112,7 @@ void drawDEFormatMenu()
 
     // run menu
     SBox ok_b;
-    MenuInfo menu = {menu_b, ok_b, UF_NOCLOCKS, M_CANCELOK, 1, NARRAY(mitems), mitems};
+    MenuInfo menu = {menu_b, ok_b, UF_CLOCKSOK, M_CANCELOK, 1, NARRAY(mitems), mitems};
     if (!runMenu (menu))
         return;
 
@@ -2432,15 +2561,35 @@ static void runShutdownMenu(void)
     bool locked = screenIsLocked();
 
     const int SHM_INDENT = 3;
-    MenuItem mitems[] = {
-        {MENU_TOGGLE,                        locked,        1, SHM_INDENT, "Lock screen ", 0},     // 0
-        {locked ? MENU_IGNORE : MENU_TOGGLE, getDemoMode(), 2, SHM_INDENT, "Demo mode", 0},        // 1
-        {locked ? MENU_IGNORE : MENU_01OFN,  false,         3, SHM_INDENT, "Configurations", 0},   // 2
-        {locked ? MENU_IGNORE : MENU_01OFN,  false,         3, SHM_INDENT, "Post diagnostics", 0}, // 3
-        {locked ? MENU_IGNORE : MENU_01OFN,  false,         3, SHM_INDENT, "Restart HamClock", 0}, // 4
-        {locked ? MENU_IGNORE : MENU_01OFN,  false,         3, SHM_INDENT, "Exit HamClock", 0},    // 5
-        {locked ? MENU_IGNORE : MENU_01OFN,  false,         3, SHM_INDENT, "Reboot computer", 0},  // 6
-        {locked ? MENU_IGNORE : MENU_01OFN,  false,         3, SHM_INDENT, "Shutdown computer", 0},// 7
+    enum {
+        SHM_LOCK,
+        SHM_DEMO,
+        SHM_CONFIGS,
+        SHM_DIAGS,
+#if !defined(NO_HAMCLOCK_CONTROLS)
+        SHM_RESTART_HC,
+        SHM_EXIT_HC,
+#endif
+#if !defined(NO_SYSTEM_CONTROLS)
+        SHM_REBOOT_SYS,
+        SHM_SHUTDOWN_SYS,
+#endif
+        SHM_N
+    };
+
+    MenuItem mitems[SHM_N] = {
+        {MENU_TOGGLE,                        locked,        1, SHM_INDENT, "Lock screen ", 0},     // SHM_LOCK
+        {locked ? MENU_IGNORE : MENU_TOGGLE, getDemoMode(), 2, SHM_INDENT, "Demo mode", 0},        // SHM_DEMO
+        {locked ? MENU_IGNORE : MENU_01OFN,  false,         3, SHM_INDENT, "Configurations", 0},   // SHM_CONFIGS
+        {locked ? MENU_IGNORE : MENU_01OFN,  false,         3, SHM_INDENT, "Post diagnostics", 0}, // SHM_DIAGS
+#if !defined(NO_HAMCLOCK_CONTROLS)
+        {locked ? MENU_IGNORE : MENU_01OFN,  false,         3, SHM_INDENT, "Restart HamClock", 0}, // SHM_RESTART_HC
+        {locked ? MENU_IGNORE : MENU_01OFN,  false,         3, SHM_INDENT, "Exit HamClock", 0},    // SHM_EXIT_HC
+#endif
+#if !defined(NO_SYSTEM_CONTROLS)
+        {locked ? MENU_IGNORE : MENU_01OFN,  false,         3, SHM_INDENT, "Reboot computer", 0},  // SHM_REBOOT_SYS
+        {locked ? MENU_IGNORE : MENU_01OFN,  false,         3, SHM_INDENT, "Shutdown computer", 0},// SHM_SHUTDOWN_SYS
+#endif
     };
     const int n_shm = NARRAY(mitems);
 
@@ -2457,7 +2606,7 @@ static void runShutdownMenu(void)
 
         // engage each selection
 
-        if (mitems[0].set) {
+        if (mitems[SHM_LOCK].set) {
             // anyone can lock
             setScreenLock (true);
         } else if (locked) {
@@ -2466,16 +2615,16 @@ static void runShutdownMenu(void)
                 setScreenLock (false);
         }
 
-        setDemoMode (mitems[1].set);
+        setDemoMode (mitems[SHM_DEMO].set);
         drawDemoRunner();
 
-        if (mitems[2].set) {
+        if (mitems[SHM_CONFIGS].set) {
             if (askPasswd ("configurations", true))
                 runConfigManagement();
         }
 
-        if (mitems[3].set) {
-            if (RUSure (menu_b, mitems[3].label)) {
+        if (mitems[SHM_DIAGS].set) {
+            if (RUSure (menu_b, mitems[SHM_DIAGS].label)) {
                 menuMsg (menu_b, RA8875_WHITE, "posting...");
                 if (postDiags())
                     menuMsg (menu_b, RA8875_GREEN, "posting complete");
@@ -2484,23 +2633,26 @@ static void runShutdownMenu(void)
             }
         }
 
-        if (mitems[4].set) {
-            if (RUSure (menu_b, mitems[4].label) && askPasswd ("restart", true)) {
+#if !defined(NO_HAMCLOCK_CONTROLS)
+        if (mitems[SHM_RESTART_HC].set) {
+            if (RUSure (menu_b, mitems[SHM_RESTART_HC].label) && askPasswd ("restart", true)) {
                 Serial.print ("Restarting\n");
                 eraseScreen();  // fast touch feedback
                 doReboot(false, false);
             }
         }
 
-        if (mitems[5].set) {
-            if (RUSure (menu_b, mitems[5].label) && askPasswd ("exit", true)) {
+        if (mitems[SHM_EXIT_HC].set) {
+            if (RUSure (menu_b, mitems[SHM_EXIT_HC].label) && askPasswd ("exit", true)) {
                 Serial.print ("Exiting\n");
                 doExit();
             }
         }
+#endif
 
-        if (mitems[6].set) {
-            if (RUSure (menu_b, mitems[6].label) && askPasswd ("reboot", true)) {
+#if !defined(NO_SYSTEM_CONTROLS)
+        if (mitems[SHM_REBOOT_SYS].set) {
+            if (RUSure (menu_b, mitems[SHM_REBOOT_SYS].label) && askPasswd ("reboot", true)) {
                 Serial.print ("Rebooting\n");
                 eraseScreen();
                 selectFontStyle (BOLD_FONT, SMALL_FONT);
@@ -2521,8 +2673,8 @@ static void runShutdownMenu(void)
             }
         }
 
-        if (mitems[7].set) {
-            if (RUSure (menu_b, mitems[7].label) && askPasswd ("shutdown", true)) {
+        if (mitems[SHM_SHUTDOWN_SYS].set) {
+            if (RUSure (menu_b, mitems[SHM_SHUTDOWN_SYS].label) && askPasswd ("shutdown", true)) {
                 Serial.print ("Shutting down\n");
                 eraseScreen();
                 selectFontStyle (BOLD_FONT, SMALL_FONT);
@@ -2549,6 +2701,7 @@ static void runShutdownMenu(void)
                 }
             }
         }
+#endif
     }
 
     if (do_full_init)
@@ -2561,8 +2714,13 @@ static void runShutdownMenu(void)
 void doReboot(bool minus_K, bool minus_0)
 {
     defaultState();
+#if defined(_IS_ANDROID)
+    android_request_restart(minus_K);
+    for(;;);
+#else
     ESP.restart (minus_K, minus_0);
     for(;;);
+#endif
 }
 
 /* do exit, as best we can
@@ -2575,7 +2733,12 @@ void doExit()
         // X11 calls doExit on window close, so drawing would be recursive back to that thread
         eraseScreen();
     #endif
+#if defined(_IS_ANDROID)
+    android_request_exit();
+    for(;;);
+#else
     _exit(0);
+#endif
 }
 
 /* call to display one final message, never returns

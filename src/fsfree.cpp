@@ -52,7 +52,6 @@ bool getFSSize (DSZ_t &cap, DSZ_t &used)
         return (false);
     }
 
-    // macOS says statvfs may not return any valid information ?!
     cap = (DSZ_t)buf.f_bsize * (DSZ_t)buf.f_blocks;
     if (cap == 0) {
         Serial.printf ("FS: bogus statvfs block size 0\n");
