@@ -2,7 +2,7 @@ Name:           hamclock
 Version:        4.32
 Release:        1%{?dist}
 Summary:        Portable space weather, propagation and telemetry dashboard for radio amateurs
-License:        Custom Amateur Radio License
+License:        MIT
 URL:            https://hamclock.hamradio.my
 Group:          Applications/Engineering
 
